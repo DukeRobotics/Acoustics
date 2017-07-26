@@ -17,7 +17,7 @@ def read_file_mat(filename, numHeaders=2):
 	channels = [col for col in total[1:len(total)]]
 	return channels
 
-def findPhaseDifference(pingerFrequency=25000, fs=625000, ml=16):
+def findPhaseDifference(pingerFrequency=25000, fs=625000:
 	Matrix=read_file_mat('0-calibrated-625.csv')
 	Channel1=np.array(np.asarray(Matrix[0]))[113920:114010] #241925:242005  113920:114000
 	Channel2=np.array(np.asarray(Matrix[1]))[113920:114010]
@@ -29,15 +29,15 @@ def findPhaseDifference(pingerFrequency=25000, fs=625000, ml=16):
 	FiltChannel3=signal.lfilter(b,a,Channel3)
 
 
-	diff12=corr(ml, FiltChannel2, FiltChannel1, fs, pingerFrequency) ##if all bearings are opposite of expected, switch order of 2 and 1
-	diff13=corr(ml, FiltChannel3, FiltChannel1, fs, pingerFrequency) ##if all bearings are opposite of expected, switch order of 3 and 1
+	diff12=corr(FiltChannel2, FiltChannel1, fs, pingerFrequency) ##if all bearings are opposite of expected, switch order of 2 and 1
+	diff13=corr(FiltChannel3, FiltChannel1, fs, pingerFrequency) ##if all bearings are opposite of expected, switch order of 3 and 1
 
 
 	bearing=np.arctan2(diff12, diff13)*180/np.pi
 	print ("bearing is: %.5f" % bearing)
 	return bearing
 
-def corr(ml, waveA, waveB, fs, pingerFrequency):
+def corr(waveA, waveB, fs, pingerFrequency):
 	maxLag=fs/pingerFrequency
 	n=len(waveA)-math.floor(maxLag)
 	corrArray=[]
@@ -96,11 +96,17 @@ def corr(ml, waveA, waveB, fs, pingerFrequency):
 
 	print(time.time())
 
+	##filter it using normal cheby filter
+	##find start of ping
+	#find where time of start of ping
+	#return this time
+	return 0
+
 
 def getPingerData(host='localhost', port=10429, TimerClock=time.time()):
 	currentTime=time.time()
 	while currentTime > TimerClock:
-		TimerClock+=2
+		TimerClock+=2 #this should probably 1.9 depending on pinger properties
 	time.sleep(TimerClock-currentTime) #may have to add wake up time
 
 	s=saleae.Saleae()
@@ -122,6 +128,8 @@ def getPingerData(host='localhost', port=10429, TimerClock=time.time()):
 def mainFunction(pingerFrequency):
 	TimeOfPingOffset=recordFirstListen()
 	getPingerData(TimerClock=TimeOfPingOffset)
-	findPhaseDifference(pingerFrequency, 625000)
+	findPhaseDifference(pingerFrequency, 625000) ##loop indefinitely getPingerData and findPhase
+	## make cases for when you find bad data
+	## make cases when you want to restart and find ping offset
 
 

@@ -22,32 +22,37 @@ def findPhaseDifference(pingerFrequency=25000, fs=625000, ml=16):
 	Channel1=np.array(np.asarray(Matrix[0]))[113920:114010] #241925:242005  113920:114000
 	Channel2=np.array(np.asarray(Matrix[1]))[113920:114010]
 	Channel3=np.array(np.asarray(Matrix[2]))[113920:114010]
-	b, a=signal.cheby1(2, 3, [((pingerFrequency-20)/fs*2),((pingerFrequency+20)/fs*2)], btype='bandpass')
+	#NEED TO SHORTEN WINDOW--DEPENDS ON USAGE
+	b, a=signal.cheby1(2, 3, [((pingerFrequency-8)/fs*2),((pingerFrequency+8)/fs*2)], btype='bandpass')
 	FiltChannel1=signal.lfilter(b,a,Channel1)
 	FiltChannel2=signal.lfilter(b,a,Channel2)
 	FiltChannel3=signal.lfilter(b,a,Channel3)
 
-	diff12=corr(ml, FiltChannel1, FiltChannel2, fs, pingerFrequency)
-	diff13=corr(ml, FiltChannel1, FiltChannel3, fs, pingerFrequency)
+
+	diff12=corr(ml, FiltChannel2, FiltChannel1, fs, pingerFrequency) ##if all bearings are opposite of expected, switch order of 2 and 1
+	diff13=corr(ml, FiltChannel3, FiltChannel1, fs, pingerFrequency) ##if all bearings are opposite of expected, switch order of 3 and 1
 
 
-	bearing=np.arctan2(diff13, diff12)*180/np.pi
+	bearing=np.arctan2(diff12, diff13)*180/np.pi
 	print ("bearing is: %.5f" % bearing)
 	return bearing
 
 def corr(ml, waveA, waveB, fs, pingerFrequency):
-	n=len(waveA)-ml
+	maxLag=fs/pingerFrequency
+	n=len(waveA)-math.floor(maxLag)
 	corrArray=[]
 	#print(waveA)
 	#print(waveB)
-	for i in range(ml):
+	for i in range(maxLag): #DO YOU NEED TO SUBTRACT ONE?
 		#print(np.corrcoef(waveA[:n,0], waveB[i:n+i,0]))
 		corrArray.append(np.corrcoef(waveA[:n,0], waveB[i:n+i,0])[0][1])
-	maxCorr=corrArray.index(max(corrArray))
+	maxCorr=corrArray.index(max(corrArray)) ##MAY NEED TO SUBTRACT ONE??
 	print(corrArray)
 
-	if maxCorr>7.062:
-		maxCorr=maxCorr-(fs/pingerFrequency)
+	if maxCorr>7.5: ##This should theoretically be 7.09 to 7.1, but experimentally (Due to speed of sound in different water ) is changed to 7.5. 
+		maxCorr=maxCorr-maxLag
+	if maxCor<-7.5: ##this should also be -7.09
+			raise("error: not possible")
 	print (maxCorr)
 	return maxCorr
 

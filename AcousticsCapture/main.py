@@ -115,7 +115,7 @@ def getPingerData(host='localhost', port=10429):
 
 def startLogic():
     os.system("Logic &")
-    time.sleep(10)
+    time.sleep(12)
 
 def mainFunction():
     # TimeOfPingOffset = recordFirstListen()
@@ -124,9 +124,8 @@ def mainFunction():
     # print('starting')
     # print('found bearing: %d' % findBearing(35000, 625000, 2.2))
     startLogic()
-    # print('begin live capture and detect')
-    capturePath = getPingerData()
-    # print('found bearing: %d' % findBearing(capturePath, 35000, 625000, 2.2))
+    print('begin live capture and detect')
+    print('found bearing: %d' % findBearing(getPingerData(), 35000, 625000, 2.2))
     # print('done')
 
 

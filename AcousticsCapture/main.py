@@ -4,6 +4,7 @@ import csv
 from scipy import signal
 import math
 import saleae
+import time
 
 
 def read_file_mat(filename, numHeaders=2):
@@ -43,8 +44,9 @@ def detect_wavefront(signal):
     return np.argmax(shortma > thresh * longma)
 
 
-def findBearing(pingerFrequency, fs, sampleTime):
-    Matrix = read_file_mat('dat1-left45.csv')
+def findBearing(capturePath, pingerFrequency, fs, sampleTime):
+    # Matrix = read_file_mat('dat1-left45.csv')
+    Matrix = read_file_mat(capturePath)
 
     [b, a] = signal.cheby2(3, 3, [((pingerFrequency - 8) / fs * 2), ((pingerFrequency + 8) / fs * 2)], btype='bandpass')
     fil_ch1 = signal.lfilter(b, a, np.asarray(Matrix[0]), axis=0)
@@ -93,35 +95,33 @@ def corr(waveA, waveB, fs, pingerFrequency):
     return maxCorr
 
 
-# def getPingerData(host='localhost', port=10429, TimerClock=time.time()):
-#     currentTime = time.time()
-#     while currentTime > TimerClock:
-#         TimerClock += 2
-#     time.sleep(TimerClock - currentTime)  # may have to add wake up time
-#
-#     s = saleae.Saleae()
-#     digital = []
-#     analog = [1, 2, 3]
-#     s.set_active_channels(digital, analog)
-#     s.set_sample_rate((0, 625000))
-#     s.set_capture_seconds(0.3)
-#     s.capture_start()
-#     file_path_on_target_machine = "/home/robot/salaea_test_data.csv"
-#     s.export_data2(file_path_on_target_machine,
-#                    digital_channels=digital,
-#                    analog_channels=analog,
-#                    format="csv",
-#                    analog_format="voltage"
-#                    )
-#     return TimerClock
+def getPingerData(host='localhost', port=10429):
+    s = saleae.Saleae()
+    digital = []
+    analog = [0, 1, 2]
+    s.set_active_channels(digital, analog)
+    s.set_sample_rate((0, 625000))
+    s.set_capture_seconds(0.3)
+    s.capture_start_and_wait_until_finished()
 
+    file_path_on_target_machine = str("/home/robot/pingCaptures/" + time.time() + ".csv")
+    s.export_data2(file_path_on_target_machine,
+                   digital_channels=digital,
+                   analog_channels=analog,
+                   format="csv",
+                   analog_format="voltage"
+                   )
+    return file_path_on_target_machine
 
 def mainFunction():
     # TimeOfPingOffset = recordFirstListen()
     # getPingerData(TimerClock=TimeOfPingOffset)
     # findPhaseDifference(pingerFrequency, 625000)
     print('starting')
-    print('found bearing: %d' % findBearing(35000, 625000, 2.2))
+    # print('found bearing: %d' % findBearing(35000, 625000, 2.2))
+    print('begin capture')
+    capturePath = getPingerData()
+    print('found bearing: %d' % findBearing(capturePath, 35000, 625000, 2.2))
     print('done')
 
 

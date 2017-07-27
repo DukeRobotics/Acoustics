@@ -104,14 +104,15 @@ def getPingerData(host='localhost', port=10429):
     s.set_capture_seconds(0.3)
     s.capture_start_and_wait_until_finished()
 
-    file_path_on_target_machine = str("/home/robot/pingCaptures/" + str(time.time()) + ".csv")
+    t = time.time()
+    file_path_on_target_machine = str("/home/robot/pingCaptures/" + str(t) + ".csv")
     s.export_data2(file_path_on_target_machine,
                    digital_channels=digital,
                    analog_channels=analog,
                    format="csv",
                    analog_format="voltage"
                    )
-    return file_path_on_target_machine
+    return (t, file_path_on_target_machine)
 
 def startLogic():
     os.system("Logic &")
@@ -123,10 +124,16 @@ def mainFunction():
     # findPhaseDifference(pingerFrequency, 625000)
     # print('starting')
     # print('found bearing: %d' % findBearing(35000, 625000, 2.2))
+
+    # ONLY NEEDS TO RUN ONCE
     startLogic()
+
     print('begin live capture and detect')
-    print('found bearing: %d' % findBearing(getPingerData(), 35000, 625000, 2.2))
-    # print('done')
+    # THIS ONLY RUNS IF THE LOGIC PROCESS IS ALIVE!
+    while (True):
+        pdat, time = getPingerData()
+        print('found bearing from time %d: %d degrees' % (str(time), findBearing(pdat, 35000, 625000, 2.2)))
+
 
 
 mainFunction()

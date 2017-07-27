@@ -5,7 +5,7 @@ from scipy import signal
 import math
 import saleae
 import time
-
+import os
 
 def read_file_mat(filename, numHeaders=2):
     reader = csv.reader(open(filename), delimiter=',')
@@ -104,7 +104,7 @@ def getPingerData(host='localhost', port=10429):
     s.set_capture_seconds(0.3)
     s.capture_start_and_wait_until_finished()
 
-    file_path_on_target_machine = str("/home/robot/pingCaptures/" + time.time() + ".csv")
+    file_path_on_target_machine = str("/home/robot/pingCaptures/" + str(time.time()) + ".csv")
     s.export_data2(file_path_on_target_machine,
                    digital_channels=digital,
                    analog_channels=analog,
@@ -113,16 +113,21 @@ def getPingerData(host='localhost', port=10429):
                    )
     return file_path_on_target_machine
 
+def startLogic():
+    os.system("Logic &")
+    time.sleep(10)
+
 def mainFunction():
     # TimeOfPingOffset = recordFirstListen()
     # getPingerData(TimerClock=TimeOfPingOffset)
     # findPhaseDifference(pingerFrequency, 625000)
-    print('starting')
+    # print('starting')
     # print('found bearing: %d' % findBearing(35000, 625000, 2.2))
-    print('begin capture')
+    startLogic()
+    # print('begin live capture and detect')
     capturePath = getPingerData()
-    print('found bearing: %d' % findBearing(capturePath, 35000, 625000, 2.2))
-    print('done')
+    # print('found bearing: %d' % findBearing(capturePath, 35000, 625000, 2.2))
+    # print('done')
 
 
 mainFunction()

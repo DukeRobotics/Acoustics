@@ -47,6 +47,7 @@ def detectWavefront(signal):
 
 def findBearing(capturePath, pingerFrequency, fs, sampleTime):
     # matrix = read_file_mat('dat1-left45.csv')
+    print(capturePath)
     matrix = readFileMat(capturePath)
 
     [b, a] = signal.cheby2(3, 3, [((pingerFrequency - 8) / fs * 2), ((pingerFrequency + 8) / fs * 2)], btype='bandpass')
@@ -117,32 +118,27 @@ def getPingerData(host='localhost', port=10429):
 
 
 def checkLogicRunning():
-    candidates = []
-    for proc in psutil.process_iter():
-        try:
-            if 'logic' in proc.name().lower():
-                candidates.append(proc)
-        except psutil.NoSuchProcess:
-            pass
-    if len(candidates) == 0:
-        return False
-    if len(candidates) >= 1:
-        return True
-
+    for pid in psutil.pids():
+        p = psutil.Process(pid)
+        if "Logic" in p.cmdline() or "Logic" in p.name():
+            return True
+    return False
+        
 
 def startLogic():
     # Don't start if already running
     if not checkLogicRunning():
         os.system("Logic &")
-        time.sleep(12)
+        time.sleep(10)
 
 
 def mainFunction():
     # REQUIRES X
     while True:
         startLogic()
-        pdat, time = getPingerData()
-        print('found bearing from time %d: %d degrees' % (str(time), findBearing(pdat, 35000, 625000, 2.2)))
+        time, pdat = getPingerData()
+        print('=====================================================')
+        print('found bearing from time %d: %d degrees' % (time, findBearing(pdat, 35000, 625000, 2.2)))
 
 
 mainFunction()

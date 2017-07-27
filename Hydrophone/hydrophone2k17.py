@@ -3,6 +3,8 @@ import numpy as np
 import csv
 from scipy import signal
 import saleae
+import time
+import math
 
 
 def read_file_mat(filename, numHeaders=2):
@@ -17,23 +19,25 @@ def read_file_mat(filename, numHeaders=2):
 	channels = [col for col in total[1:len(total)]]
 	return channels
 
-def findPhaseDifference(pingerFrequency=25000, fs=625000:
+def findPhaseDifference(pingerFrequency=25000, fs=625000):
 	Matrix=read_file_mat('0-calibrated-625.csv')
-	Channel1=np.array(np.asarray(Matrix[0]))[113920:114010] #241925:242005  113920:114000
-	Channel2=np.array(np.asarray(Matrix[1]))[113920:114010]
-	Channel3=np.array(np.asarray(Matrix[2]))[113920:114010]
+	start = 29000
+	ra = 2556
+	Channel0=np.array(np.asarray(Matrix[0]))[start-1:start+ra-1] #241925:242005  113920:114000
+	Channel1=np.array(np.asarray(Matrix[1]))[start-1:start+ra-1]
+	Channel2=np.array(np.asarray(Matrix[2]))[start-1:start+ra-1]
 	#NEED TO SHORTEN WINDOW--DEPENDS ON USAGE
-	b, a=signal.cheby1(2, 3, [((pingerFrequency-8)/fs*2),((pingerFrequency+8)/fs*2)], btype='bandpass')
+	b, a=signal.cheby2(3, 3, [((pingerFrequency-8)/fs*2),((pingerFrequency+8)/fs*2)], btype='bandpass')
+	FiltChannel0=signal.lfilter(b,a,Channel0)
 	FiltChannel1=signal.lfilter(b,a,Channel1)
 	FiltChannel2=signal.lfilter(b,a,Channel2)
-	FiltChannel3=signal.lfilter(b,a,Channel3)
 
 
-	diff12=corr(FiltChannel2, FiltChannel1, fs, pingerFrequency) ##if all bearings are opposite of expected, switch order of 2 and 1
-	diff13=corr(FiltChannel3, FiltChannel1, fs, pingerFrequency) ##if all bearings are opposite of expected, switch order of 3 and 1
+	diff11=corr(FiltChannel1, FiltChannel0, fs, pingerFrequency) ##if all bearings are opposite of expected, switch order of 2 and 1
+	diff12=corr(FiltChannel2, FiltChannel0, fs, pingerFrequency) ##if all bearings are opposite of expected, switch order of 3 and 1
 
 
-	bearing=np.arctan2(diff12, diff13)*180/np.pi
+	bearing=np.arctan2(diff11, diff12)*180/np.pi
 	print ("bearing is: %.5f" % bearing)
 	return bearing
 
@@ -43,7 +47,7 @@ def corr(waveA, waveB, fs, pingerFrequency):
 	corrArray=[]
 	#print(waveA)
 	#print(waveB)
-	for i in range(maxLag): #DO YOU NEED TO SUBTRACT ONE?
+	for i in range(math.floor(maxLag-1)): #DO YOU NEED TO SUBTRACT ONE?
 		#print(np.corrcoef(waveA[:n,0], waveB[i:n+i,0]))
 		corrArray.append(np.corrcoef(waveA[:n,0], waveB[i:n+i,0])[0][1])
 	maxCorr=corrArray.index(max(corrArray)) ##MAY NEED TO SUBTRACT ONE??
@@ -51,12 +55,12 @@ def corr(waveA, waveB, fs, pingerFrequency):
 
 	if maxCorr>7.5: ##This should theoretically be 7.09 to 7.1, but experimentally (Due to speed of sound in different water ) is changed to 7.5. 
 		maxCorr=maxCorr-maxLag
-	if maxCor<-7.5: ##this should also be -7.09
-			raise("error: not possible")
+	if maxCorr<-7.5: ##this should also be -7.09
+		#raise("error: not possible") may not need it
 	print (maxCorr)
 	return maxCorr
 
-	def recordFirstListen(host='localhost', port=10429):
+def recordFirstListen(host='localhost', port=10429):
 
 	#folder = firstListen
 	#os.mkdir(folder)
@@ -111,7 +115,7 @@ def getPingerData(host='localhost', port=10429, TimerClock=time.time()):
 
 	s=saleae.Saleae()
 	digital = []
-	analog=[1, 2, 3]
+	analog=[0, 1, 2]
 	s.set_active_channels(digital, analog)
 	s.set_sample_rate((0, 625000))
 	s.set_capture_seconds(0.2)
@@ -119,7 +123,7 @@ def getPingerData(host='localhost', port=10429, TimerClock=time.time()):
 	file_path_on_target_machine="/Users/Kelsey/Desktop/Hydrophone/normalListen.csv"
 	s.export_data2(file_path_on_target_machine, 
 		digital_channels=None, 
-		analog_channels=[1, 2, 3], 
+		analog_channels=[0, 1, 2],
 		format="csv",
 		analog_format="voltage"
 		)
@@ -128,7 +132,8 @@ def getPingerData(host='localhost', port=10429, TimerClock=time.time()):
 def mainFunction(pingerFrequency):
 	TimeOfPingOffset=recordFirstListen()
 	getPingerData(TimerClock=TimeOfPingOffset)
-	findPhaseDifference(pingerFrequency, 625000) ##loop indefinitely getPingerData and findPhase
+	findPhaseDifference(pingerFrequency, 625000)
+	##loop indefinitely getPingerData and findPhase
 	## make cases for when you find bad data
 	## make cases when you want to restart and find ping offset
 

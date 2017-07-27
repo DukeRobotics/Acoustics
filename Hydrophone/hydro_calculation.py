@@ -20,17 +20,17 @@ def read_file_mat(filename, numHeaders=2):
 
 
 def findPhaseDifference(pingerFrequency=25000, fs=625000):
-    Matrix=read_file_mat('west-ca-1.csv')
-    start = 29000
+    Matrix=read_file_mat('dat1-left45.csv')
+    start = 219000
     ra = 2556
     Channel0=np.array(np.asarray(Matrix[0]))[start-1:start+ra-1] #241925:242005  113920:114000
     Channel1=np.array(np.asarray(Matrix[1]))[start-1:start+ra-1]
     Channel2=np.array(np.asarray(Matrix[2]))[start-1:start+ra-1]
     #NEED TO SHORTEN WINDOW--DEPENDS ON USAGE
     b, a=signal.cheby2(3, 3, [((pingerFrequency-8)/fs*2),((pingerFrequency+8)/fs*2)], btype='bandpass')
+    FiltChannel0=signal.lfilter(b,a,Channel0)
     FiltChannel1=signal.lfilter(b,a,Channel1)
     FiltChannel2=signal.lfilter(b,a,Channel2)
-    FiltChannel3=signal.lfilter(b,a,Channel3)
 
     diff11=corr(FiltChannel1, FiltChannel0, fs, pingerFrequency) ##if all bearings are opposite of expected, switch order of 2 and 1
     diff12=corr(FiltChannel2, FiltChannel0, fs, pingerFrequency) ##if all bearings are opposite of expected, switch order of 3 and 1
@@ -58,4 +58,4 @@ def corr(waveA, waveB, fs, pingerFrequency):
 	print (maxCorr)
 	return maxCorr
 
- print (findPhaseDifference(40000, 625000))
+ print (findPhaseDifference(35000, 625000))

@@ -7,6 +7,8 @@ import saleae
 import time
 import os
 import psutil
+from xvfbwrapper import Xvfb
+
 
 #This should theoretically be 7.09 to 7.1, but experimentally (Due to speed of sound in different water ) is changed to 7.5.
 MAX_CORR_CONST = 7.09
@@ -103,7 +105,7 @@ def getPingerData(host='localhost', port=10429):
     analog = [0, 1, 2]
     s.set_active_channels(digital, analog)
     s.set_sample_rate((0, 625000))
-    s.set_capture_seconds(0.3)
+    s.set_capture_seconds(2.2)
     s.capture_start_and_wait_until_finished()
 
     t = time.time()
@@ -129,11 +131,12 @@ def startLogic():
     # Don't start if already running
     if not checkLogicRunning():
         os.system("Logic &")
-        time.sleep(10)
+        time.sleep(20)
 
 
 def mainFunction():
-    # REQUIRES X
+    display = Xvfb()
+    display.start()
     while True:
         startLogic()
         time, pdat = getPingerData()

@@ -30,7 +30,7 @@ def detectWavefront(signals, pingerFrequency, fs):
     #print(signals[0:10])
     n = 10000
     sn = 1000
-    thresh = 4 # tune this to similarly adjust robustness
+    thresh = 3.9 # tune this to similarly adjust robustness
     amplitude = np.abs(signals)
     longma = movingAverage(amplitude, n)
     shortma = movingAverage(amplitude, sn)
@@ -44,32 +44,39 @@ def filterWave(signals, pingerFrequency=40000, fs=625000):
 
 def findPhaseDifference(filename, add, pingerFrequency=40000, fs=625000):
 	Matrix=read_file_mat(filename)
-	ra = 2556
+	ra = 200
 
 
 	Channel0=np.array(np.asarray(Matrix[0]))
 	Channel1=np.array(np.asarray(Matrix[1]))
 	Channel2=np.array(np.asarray(Matrix[2]))
     #NEED TO SHORTEN WINDOW--DEPENDS ON USAGE
-	ping = detectWavefront(Channel0, pingerFrequency, fs)
+	ping0 = detectWavefront(Channel0, pingerFrequency, fs)     #move 300 sample ahead to get the true wavefront, from experience
+	ping1 = detectWavefront(Channel1, pingerFrequency, fs)
+	ping2 = detectWavefront(Channel2, pingerFrequency, fs)
+	ping = min([ping0, ping1, ping2])
 	end = len(Channel0)
 
-	Channel0s = Channel0[ping+add-1:ping+add+ra-1]
-	Channel1s = Channel1[ping + add - 1:ping+add+ra - 1]
-	Channel2s = Channel2[ping + add - 1:ping+add+ra - 1]
+	filtChannel0 = filterWave(Channel0, pingerFrequency, fs)
+	filtChannel1 = filterWave(Channel1, pingerFrequency, fs)
+	filtChannel2 = filterWave(Channel2, pingerFrequency, fs)
+
+	Channel0s = filtChannel0[ping+add-1:ping+add+ra-1]
+	Channel1s = filtChannel1[ping + add - 1:ping+add+ra - 1]
+	Channel2s = filtChannel2[ping + add - 1:ping+add+ra - 1]
 	#b, a=signal.cheby2(3, 3, [((pingerFrequency-8)/fs*2),((pingerFrequency+8)/fs*2)], btype='bandpass')
 	#FiltChannel0=signal.lfilter(b,a,Channel0, axis=0)
 	#FiltChannel1=signal.lfilter(b,a,Channel1, axis=0)
 	#FiltChannel2=signal.lfilter(b,a,Channel2, axis=0)
-	FiltChannel0 = filterWave(Channel0s, pingerFrequency, fs)
-	FiltChannel1 = filterWave(Channel1s, pingerFrequency, fs)
-	FiltChannel2 = filterWave(Channel2s, pingerFrequency, fs)
+	#FiltChannel0 = filterWave(Channel0s, pingerFrequency, fs)
+	#FiltChannel1 = filterWave(Channel1s, pingerFrequency, fs)
+	#FiltChannel2 = filterWave(Channel2s, pingerFrequency, fs)
 
 	print(ping+add)
 
 	#print(fChannel0s[0:10])
-	diff11=corr(FiltChannel1, FiltChannel0, fs, pingerFrequency) ##if all bearings are opposite of expected, switch order of 2 and 1
-	diff12=corr(FiltChannel2, FiltChannel0, fs, pingerFrequency) ##if all bearings are opposite of expected, switch order of 3 and 1
+	diff11=corr(Channel1s, Channel0s, fs, pingerFrequency) ##if all bearings are opposite of expected, switch order of 2 and 1
+	diff12=corr(Channel2s, Channel0s, fs, pingerFrequency) ##if all bearings are opposite of expected, switch order of 3 and 1
 
 	bearing=np.arctan2(diff11, diff12)*180/np.pi
 	print ("bearing is: %.5f" % bearing)
@@ -105,10 +112,10 @@ def findPing(wave, fs = 625000):
 
 def bearing(filename, pingerFrequency = 25000, fs = 625000):
 	bearinglist = []
-	for i in range(3):
+	for i in range(1):
 		i = i*100
 		bearinglist.append(findPhaseDifference(filename, i, pingerFrequency, fs))
 	return (sum(bearinglist)/len(bearinglist))
 
 
-print(bearing('july271019.csv', 30000, 625000))
+print(bearing('180-625-8-25khz.csv', 25000, 625000))

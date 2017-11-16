@@ -1,5 +1,5 @@
 fs=625000;
-pingerFrequncy=35000;
+pingerFrequncy=25000;
 clf;
 
 t=linspace(0,2.1,125000*2.1);

@@ -8,7 +8,7 @@
 #include <unistd.h>
 
 #include "pmd.h"
-#include "usb_1608G.h"
+#include "usb-1608G.h"
 
 #define MAX_COUNT		(0xffff)
 #define FALSE 0

@@ -8,7 +8,7 @@
 #include <unistd.h>
 
 #include "pmd.h"
-#include "usb_1608G.h"
+#include "usb-1608G.h"
 
 #define MAX_COUNT		(0xffff)
 #define FALSE 0
@@ -90,7 +90,7 @@ int main (int argc, char **argv) {
 
 	if ((sdataIn = malloc(2*nchan*nScans)) == NULL) {
 		perror("cannot allocate memory for sdataIn");
-		break;
+		return;
 	}
 
 	usbAInScanStart_USB1608G(udev, nScans, 0, frequency, 0x0);

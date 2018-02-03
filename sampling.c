@@ -6,6 +6,7 @@
 #include <ctype.h>
 #include <math.h>
 #include <unistd.h>
+#include <fftw3.h>
 
 #include "pmd.h"
 #include "usb-1608G.h"
@@ -48,6 +49,19 @@ int main (int argc, char **argv) {
 
 	ret = libusb_init(NULL);
 
+	fftw_complex *out;
+	double *in;
+	fftw_plan p;
+	int i;
+	int freqs = 120000;
+	int freq = 6000;
+	int times = 4;
+	int count = times*freqs;
+	int freqmin = 20000;
+	int freqmax = 60000;
+	int result = 0;
+	int f;
+
 	if (ret < 0) {
 		perror("fail to initialize libsusb");
 		exit(1);
@@ -73,9 +87,9 @@ int main (int argc, char **argv) {
 	usbAInScanClearFIFO_USB1608G(udev);
 	mode = SINGLE_ENDED;
 	gain = BP_10V;
-	nchan = 3;
-	nScans = 10000;
-	frequency = 250000;
+	nchan = 1;
+	nScans = count;
+	frequency = freqs;
 
 
 	for (channel = 0; channel < nchan; channel++) {
@@ -93,6 +107,10 @@ int main (int argc, char **argv) {
 		return;
 	}
 
+	in = (double*) fftw_malloc(sizeof(double) * count);
+	out = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * count);
+	p = fftw_plan_dft_r2c_1d(count, in, out, FFTW_ESTIMATE);
+
 	usbAInScanStart_USB1608G(udev, nScans, 0, frequency, 0x0);
 	ret = usbAInScanRead_USB1608G(udev, nScans, nchan, sdataIn, 20000, 0);
 	for (i = 0; i < nScans; i++) {
@@ -102,9 +120,24 @@ int main (int argc, char **argv) {
 			k = i*nchan + j;
 			data = rint(sdataIn[k]*table_AIN[gain][0] + table_AIN[gain][1]);
 			printf(", %8.4lf", volts_USB1608G(gain, data));
+			in[j] = volts_USB1608G(gain, data);
 		}
 		printf("\n");
 	}
 	free(sdataIn);
+
+	fftw_execute(p); /* repeat as needed */
+	fftw_destroy_plan(p);
+
+	for (i = (freqmin*times); i <= (freqmax*times); i++) {
+		f = i/times;
+		if (f > result) {
+			result = f;
+		}
+		printf("%d %f %f\n", f, out[i][0], out[i][1]);
+	}
+	printf("max is %d Hz\n", f);
+
+	fftw_free(in); fftw_free(out);
 
 }

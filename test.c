@@ -2,7 +2,7 @@
 #include <math.h>
 #include <fftw3.h>
 
-//gcc -lfftw3 -lm -o test test.c
+//gcc -o test test.c -lfftw3 -lm
 //inside the fft library root directory
 int main(int argc, char *argv[]) {
 

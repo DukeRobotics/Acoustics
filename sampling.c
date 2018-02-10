@@ -54,13 +54,16 @@ int main (int argc, char **argv) {
 	fftw_plan p;
 	int i;
 	int freqs = 120000;
-	int freq = 6000;
+	//int freq = 6000;
 	int times = 4;
 	int count = times*freqs;
 	int freqmin = 20000;
 	int freqmax = 60000;
 	int result = 0;
 	int f;
+
+	FILE* fp;
+	fp = fopen("data.csv", "w+");
 
 	if (ret < 0) {
 		perror("fail to initialize libsusb");
@@ -120,11 +123,13 @@ int main (int argc, char **argv) {
 			k = i*nchan + j;
 			data = rint(sdataIn[k]*table_AIN[gain][0] + table_AIN[gain][1]);
 			printf(", %8.4lf", volts_USB1608G(gain, data));
+			fprintf(fp, "%8.4lf\n", volts_USB1608G(gain, data));
 			in[j] = volts_USB1608G(gain, data);
 		}
 		printf("\n");
 	}
 	free(sdataIn);
+	fclose(fp);
 
 	fftw_execute(p); /* repeat as needed */
 	fftw_destroy_plan(p);

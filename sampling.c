@@ -135,13 +135,13 @@ int main (int argc, char **argv) {
 	fftw_destroy_plan(p);
 
 	for (i = (freqmin*times); i <= (freqmax*times); i++) {
-		f = i/times;
-		if (f > result) {
-			result = f;
-		}
-		printf("%d %f %f\n", f, out[i][0], out[i][1]);
-	}
-	printf("max is %d Hz\n", f);
+    f = i/times;
+    if (abs(out[i][0]) > result) {
+      result = f;
+    }
+    printf("%d %f %f\n", f, out[i][0], out[i][1]);
+  }
+  printf("max is %d Hz\n", result);
 
 	fftw_free(in); fftw_free(out);
 

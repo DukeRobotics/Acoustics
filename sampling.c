@@ -52,15 +52,15 @@ int main (int argc, char **argv) {
 	fftw_complex *out;
 	double *in;
 	fftw_plan p;
-	int i;
 	int freqs = 120000;
 	//int freq = 6000;
 	int times = 4;
 	int count = times*freqs;
-	int freqmin = 20000;
+	int freqmin = 0;
 	int freqmax = 60000;
 	int result = 0;
 	int f;
+	int resultf = 0;
 
 	FILE* fp;
 	fp = fopen("data.csv", "w+");
@@ -88,7 +88,7 @@ int main (int argc, char **argv) {
 	printf("start sampling\n");
 	usbAInScanStop_USB1608G(udev);
 	usbAInScanClearFIFO_USB1608G(udev);
-	mode = SINGLE_ENDED;
+	mode = DIFFERENTIAL;
 	gain = BP_10V;
 	nchan = 1;
 	nScans = count;
@@ -110,7 +110,7 @@ int main (int argc, char **argv) {
 		return;
 	}
 
-	in = (double*) fftw_malloc(sizeof(double) * count);
+	in = (double*) malloc(sizeof(double) * count);
 	out = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * count);
 	p = fftw_plan_dft_r2c_1d(count, in, out, FFTW_ESTIMATE);
 
@@ -122,9 +122,10 @@ int main (int argc, char **argv) {
 			gain = list[j].range;
 			k = i*nchan + j;
 			data = rint(sdataIn[k]*table_AIN[gain][0] + table_AIN[gain][1]);
+			
 			printf(", %8.4lf", volts_USB1608G(gain, data));
 			fprintf(fp, "%8.4lf\n", volts_USB1608G(gain, data));
-			in[j] = volts_USB1608G(gain, data);
+			in[i] = volts_USB1608G(gain, data);
 		}
 		printf("\n");
 	}
@@ -136,13 +137,14 @@ int main (int argc, char **argv) {
 
 	for (i = (freqmin*times); i <= (freqmax*times); i++) {
     f = i/times;
-    if (abs(out[i][0]) > result) {
-      result = f;
+    if (abs(out[i][0]*out[i][0]+out[i][1]*out[i][1]) > result) {
+      resultf = f;
+      result = abs(out[i][0]*out[i][0]+out[i][1]*out[i][1]);
     }
     printf("%d %f %f\n", f, out[i][0], out[i][1]);
   }
-  printf("max is %d Hz\n", result);
+  printf("max is %d Hz\n", resultf);
 
-	fftw_free(in); fftw_free(out);
+	free(in); fftw_free(out);
 
 }

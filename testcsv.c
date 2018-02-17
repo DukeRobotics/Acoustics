@@ -1,3 +1,4 @@
+#include<stdlib.h>
 #include <stdio.h>
 #include <math.h>
 #include <fftw3.h>
@@ -17,11 +18,13 @@ int main(int argc, char *argv[]) {
   int freqmin = 20000;
   int freqmax = 60000;
   int result = 0;
-  int f;
+	int f;
+	int resultf = 0;
 
-  FILE* fp = fopen("data.csv", "r");
+  FILE* fp = fopen("out.csv", "r");
   double* temp;
 
+  count = 798920;
   in = (double*) fftw_malloc(sizeof(double) * count);
   out = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * count);
   p = fftw_plan_dft_r2c_1d(count, in, out, FFTW_ESTIMATE);
@@ -34,20 +37,21 @@ int main(int argc, char *argv[]) {
   while (fscanf(fp, "%lf\n", temp) == 1) {
     in[i] = *temp;
     i++;
-    printf("%lf\n", *temp);
+    //printf("%lf\n", *temp);
   }
 
   fftw_execute(p); /* repeat as needed */
-  fftw_destroy_plan(p);
+	fftw_destroy_plan(p);
 
-  for (i = (freqmin*times); i <= (freqmax*times); i++) {
+	for (i = (freqmin*times); i <= (freqmax*times); i++) {
     f = i/times;
-    if (abs(out[i][0]) > result) {
-      result = f;
+    if (abs(out[i][0]*out[i][0]+out[i][1]*out[i][1]) > result) {
+      resultf = f;
+      result = abs(out[i][0]*out[i][0]+out[i][1]*out[i][1]);
     }
     //printf("%d %f %f\n", f, out[i][0], out[i][1]);
   }
-  printf("max is %d Hz\n", result);
+  printf("max is %d Hz\n", resultf);
 
-  fftw_free(in); fftw_free(out);
+	free(in); fftw_free(out);
 }

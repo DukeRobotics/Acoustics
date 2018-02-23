@@ -52,7 +52,7 @@ int main (int argc, char **argv) {
 	fftw_complex *out;
 	double *in;
 	fftw_plan p;
-	int freqs = 120000;
+	int freqs = 130000;
 	//int freq = 6000;
 	int times = 4;
 	int count = times*freqs;
@@ -63,7 +63,7 @@ int main (int argc, char **argv) {
 	int resultf = 0;
 
 	FILE* fp;
-	fp = fopen("data.csv", "w+");
+	fp = fopen("/home/robot/Desktop/Acoustics/data.csv", "w+");
 
 	if (ret < 0) {
 		perror("fail to initialize libsusb");
@@ -117,13 +117,13 @@ int main (int argc, char **argv) {
 	usbAInScanStart_USB1608G(udev, nScans, 0, frequency, 0x0);
 	ret = usbAInScanRead_USB1608G(udev, nScans, nchan, sdataIn, 20000, 0);
 	for (i = 0; i < nScans; i++) {
-		printf("%6d", i);
+		//printf("%6d", i);
 		for (j = 0; j < nchan; j++) {
 			gain = list[j].range;
 			k = i*nchan + j;
 			data = rint(sdataIn[k]*table_AIN[gain][0] + table_AIN[gain][1]);
 
-			printf(", %8.4lf", volts_USB1608G(gain, data));
+			printf("%8.4lf", volts_USB1608G(gain, data));
 			fprintf(fp, "%8.4lf\n", volts_USB1608G(gain, data));
 			// in[i] = volts_USB1608G(gain, data);
 		}

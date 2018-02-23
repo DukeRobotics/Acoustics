@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import subprocess
 import numpy as np
 
-fs = 120000
+fs = 130000
 
 def cheby2_bandpass(lowcut, highcut, fs, order=5):
     nyq = 0.5 * fs
@@ -20,19 +20,23 @@ def cheby2_bandpass_filter(data, lowcut, highcut, fs, order=5):
 
 if __name__ == "__main__":
     data = []
+    process = subprocess.Popen("/home/robot/Desktop/mcc-libusb/sampling")
+    process.wait()
+    
     with open("data.csv", 'rb') as filec:
         reader = csv.reader(filec)
         for row in reader:
             try:
                 p = float(row[0])
+		#print p
                 data.append(p)
             except:
                 continue
     try:
-        out = cheby2_bandpass_filter(data, 30000, 60000, fs)
-        time = np.linspace(0, len(data)/fs, len(data))
+        out = cheby2_bandpass_filter(data, 39000, 41000, fs)
+        time = np.linspace(0, len(data)/fs, num=len(data))
     except Exception as e:
-        print e
+        print(e)
     #print out[0]
     # with open("out.csv", 'wb') as write:
     #     writer = csv.writer(write)
@@ -40,8 +44,8 @@ if __name__ == "__main__":
     #         writer.writerow([round(point, 4)])
     #plt.plot(data)
     # print len(data)
+    #print out
     plt.plot(time, out)
     # subprocess.call(["rm", "testcsv"])
     # subprocess.call(["gcc", "-o", "testcsv", "testcsv.c", "-lfftw3", "-lm"])
-    # subprocess.call("./testcsv")
     plt.show()

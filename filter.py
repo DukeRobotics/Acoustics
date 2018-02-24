@@ -3,8 +3,11 @@ import csv
 import matplotlib.pyplot as plt
 import subprocess
 import numpy as np
+import sys
 
 fs = 130000
+
+#running average get time section, fft get phase comparison, multichannels
 
 def cheby2_bandpass(lowcut, highcut, fs, order=5):
     nyq = 0.5 * fs
@@ -20,20 +23,31 @@ def cheby2_bandpass_filter(data, lowcut, highcut, fs, order=5):
 
 if __name__ == "__main__":
     data = []
-    process = subprocess.Popen("/home/robot/Desktop/mcc-libusb/sampling")
+    freq = int(sys.argv[1])
+    process = subprocess.Popen("/home/robot/Desktop/mcc-libusb/sampling", stdout = subprocess.PIPE)
     process.wait()
-    
-    with open("data.csv", 'rb') as filec:
-        reader = csv.reader(filec)
-        for row in reader:
-            try:
-                p = float(row[0])
-		#print p
-                data.append(p)
-            except:
-                continue
+    stddata, stderror = process.communicate()
+
+    datas = stddata.split("\n")
+
+    for d in datas:
+        try:
+            p = float(d)
+            data.append(p)
+        except:
+            continue
+
+    # with open("data.csv", 'rb') as filec:
+    #     reader = csv.reader(filec)
+    #     for row in reader:
+    #         try:
+    #             p = float(row[0])
+	# 	#print p
+    #             data.append(p)
+    #         except:
+    #             continue
     try:
-        out = cheby2_bandpass_filter(data, 39000, 41000, fs)
+        out = cheby2_bandpass_filter(data, freq-1000, freq+1000, fs)
         time = np.linspace(0, len(data)/fs, num=len(data))
     except Exception as e:
         print(e)

@@ -7,7 +7,8 @@ import sys
 
 fs = 130000
 
-time = 2.15
+ts = 2.15
+pingc = fs*0.004
 
 #running average get time section, fft get phase comparison, multichannels
 
@@ -23,7 +24,7 @@ def cheby2_bandpass_filter(data, lowcut, highcut, fs, order=5):
     y = lfilter(b, a, data)
     return y
 
-def moving_average(a, n = fs*0.004*3) :
+def moving_average(a, n = pinc*3) :
     weights = np.repeat(1.0, n)/n
     alist = np.convolve(a, weights, 'valid')
     #ret = np.cumsum(a, dtype=float)
@@ -31,7 +32,6 @@ def moving_average(a, n = fs*0.004*3) :
     #alist = ret[n - 1:] / n
     maxa = 0
     maxi = 0
-    print len(alist)
     for k in range(len(alist)):
 	ave = alist[k]
 	if ave > maxa:
@@ -42,7 +42,7 @@ def moving_average(a, n = fs*0.004*3) :
 if __name__ == "__main__":
     data = []
     freq = int(sys.argv[1])
-    process = subprocess.Popen(["/home/robot/Desktop/mcc-libusb/sampling", str(time), str(fs)], stdout = subprocess.PIPE)
+    process = subprocess.Popen(["/home/robot/Desktop/mcc-libusb/sampling", str(ts), str(fs)], stdout = subprocess.PIPE)
     stddata, stderror = process.communicate()
 
     datas = stddata.split("\n")
@@ -67,10 +67,32 @@ if __name__ == "__main__":
         out = cheby2_bandpass_filter(data[13000:], freq-50, freq+50, fs)
     except Exception as e:
         print(e)
-    start = moving_average(out)
-    print start
-    outw = out[int(start-fs*0.004*6):int(start+fs*0.004*6)]
-    time = np.linspace(0, fs*0.004*10, num=len(outw))
+    avem = moving_average(out)
+    start = 0
+    end = 0
+    if avem-pingc*6 > 0:
+        start = avem-pingc*6
+        start = int(start)
+    if avem+pingc*6 < len(out):
+        end = avem+pingc*6
+        end = int(end)
+    outw = out[start:end]
+    dataw = data[start: end]
+    fft = np.fft.fft(dataw)
+    ffta = np.absolute(fft)
+    time = np.linspace(0, pingc*10, num=len(outw))
+
+    result = 0
+    resultf = 0
+	for i in range(len(ffta)) {
+    f = i/time;
+    if (ffta[i] > result) {
+      resultf = f;
+      result = ffta[i];
+    }
+    print f, ffta[i]
+  }
+  print resultf, result
     #print out[0]
     # with open("out.csv", 'wb') as write:
     #     writer = csv.writer(write)

@@ -7,7 +7,7 @@ import sys
 
 fs = 130000
 
-time = 4
+time = 2.05
 
 #running average get time section, fft get phase comparison, multichannels
 
@@ -24,14 +24,25 @@ def cheby2_bandpass_filter(data, lowcut, highcut, fs, order=5):
     return y
 
 def moving_average(a, n = fs*0.004*3) :
-    ret = np.cumsum(a, dtype=float)
-    ret[n:] = ret[n:] - ret[:-n]
-    return ret[n - 1:] / n
+    weights = np.repeat(1.0, n)/n
+    alist = np.convolve(a, weights, 'valid')
+    #ret = np.cumsum(a, dtype=float)
+    #ret[n:] = ret[n:] - ret[:-n]
+    #alist = ret[n - 1:] / n
+    maxa = 0
+    maxi = 0
+    print len(alist)
+    for k in range(len(alist)):
+	ave = alist[k]
+	if ave > maxa:
+	    maxa = ave
+	    maxi = k
+    return maxi
 
 if __name__ == "__main__":
     data = []
     freq = int(sys.argv[1])
-    process = subprocess.Popen(["/home/robot/Desktop/mcc-libusb/sampling", time, fs], stdout = subprocess.PIPE)
+    process = subprocess.Popen(["/home/robot/Desktop/mcc-libusb/sampling", str(time), str(fs)], stdout = subprocess.PIPE)
     stddata, stderror = process.communicate()
 
     datas = stddata.split("\n")
@@ -53,11 +64,13 @@ if __name__ == "__main__":
     #         except:
     #             continue
     try:
-        out = cheby2_bandpass_filter(data, freq-1000, freq+1000, fs)
+        out = cheby2_bandpass_filter(data, freq-50, freq+50, fs)
     except Exception as e:
         print(e)
-    outw = max(moving_average(out))
-    time = np.linspace(0, fs*0.004*3, num=len(outw))
+    start = moving_average(out)
+    print start
+    outw = out[int(start-fs*0.004*3):int(start+fs*0.004)]
+    time = np.linspace(0, fs*0.004*10, num=len(outw))
     #print out[0]
     # with open("out.csv", 'wb') as write:
     #     writer = csv.writer(write)
@@ -66,7 +79,7 @@ if __name__ == "__main__":
     #plt.plot(data)
     # print len(data)
     #print out
-    plt.plot(time, out)
+    plt.plot(out)
     # subprocess.call(["rm", "testcsv"])
     # subprocess.call(["gcc", "-o", "testcsv", "testcsv.c", "-lfftw3", "-lm"])
     plt.show()

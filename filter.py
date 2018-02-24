@@ -7,6 +7,8 @@ import sys
 
 fs = 130000
 
+time = 4
+
 #running average get time section, fft get phase comparison, multichannels
 
 def cheby2_bandpass(lowcut, highcut, fs, order=5):
@@ -21,11 +23,15 @@ def cheby2_bandpass_filter(data, lowcut, highcut, fs, order=5):
     y = lfilter(b, a, data)
     return y
 
+def moving_average(a, n = fs*0.004*3) :
+    ret = np.cumsum(a, dtype=float)
+    ret[n:] = ret[n:] - ret[:-n]
+    return ret[n - 1:] / n
+
 if __name__ == "__main__":
     data = []
     freq = int(sys.argv[1])
-    process = subprocess.Popen("/home/robot/Desktop/mcc-libusb/sampling", stdout = subprocess.PIPE)
-    process.wait()
+    process = subprocess.Popen(["/home/robot/Desktop/mcc-libusb/sampling", time, fs], stdout = subprocess.PIPE)
     stddata, stderror = process.communicate()
 
     datas = stddata.split("\n")
@@ -48,9 +54,10 @@ if __name__ == "__main__":
     #             continue
     try:
         out = cheby2_bandpass_filter(data, freq-1000, freq+1000, fs)
-        time = np.linspace(0, len(data)/fs, num=len(data))
     except Exception as e:
         print(e)
+    outw = max(moving_average(out))
+    time = np.linspace(0, fs*0.004*3, num=len(outw))
     #print out[0]
     # with open("out.csv", 'wb') as write:
     #     writer = csv.writer(write)

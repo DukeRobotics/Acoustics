@@ -52,9 +52,9 @@ int main (int argc, char **argv) {
 	fftw_complex *out;
 	double *in;
 	fftw_plan p;
-	int freqs = 130000;
+	int freqs = argv[2];
 	//int freq = 6000;
-	int times = 4;
+	int times = argv[1];
 	int count = times*freqs;
 	int freqmin = 0;
 	int freqmax = 60000;
@@ -62,8 +62,8 @@ int main (int argc, char **argv) {
 	int f;
 	int resultf = 0;
 
-	FILE* fp;
-	fp = fopen("/home/robot/Desktop/Acoustics/data.csv", "w+");
+	//FILE* fp;
+	//fp = fopen("/home/robot/Desktop/Acoustics/data.csv", "w+");
 
 	if (ret < 0) {
 		perror("fail to initialize libsusb");
@@ -124,13 +124,13 @@ int main (int argc, char **argv) {
 			data = rint(sdataIn[k]*table_AIN[gain][0] + table_AIN[gain][1]);
 
 			printf("%8.4lf", volts_USB1608G(gain, data));
-			fprintf(fp, "%8.4lf\n", volts_USB1608G(gain, data));
+			//fprintf(fp, "%8.4lf\n", volts_USB1608G(gain, data));
 			// in[i] = volts_USB1608G(gain, data);
 		}
 		printf("\n");
 	}
 	free(sdataIn);
-	fclose(fp);
+	//fclose(fp);
 
 	// fftw_execute(p); /* repeat as needed */
 	// fftw_destroy_plan(p);

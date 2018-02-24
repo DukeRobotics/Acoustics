@@ -24,7 +24,7 @@ def cheby2_bandpass_filter(data, lowcut, highcut, fs, order=5):
     y = lfilter(b, a, data)
     return y
 
-def moving_average(a, n = pinc*3) :
+def moving_average(a, n = pingc*3) :
     weights = np.repeat(1.0, n)/n
     alist = np.convolve(a, weights, 'valid')
     #ret = np.cumsum(a, dtype=float)
@@ -76,23 +76,28 @@ if __name__ == "__main__":
     if avem+pingc*6 < len(out):
         end = avem+pingc*6
         end = int(end)
+    print start, end
     outw = out[start:end]
     dataw = data[start: end]
-    fft = np.fft.fft(dataw)
+
+    plt.plot(out)
+    plt.show()
+
+    cw = end-start+1
+    fft = np.fft.fft(outw)
     ffta = np.absolute(fft)
+    print fft, ffta
     time = np.linspace(0, pingc*10, num=len(outw))
 
     result = 0
     resultf = 0
-	for i in range(len(ffta)) {
-    f = i/time;
-    if (ffta[i] > result) {
-      resultf = f;
-      result = ffta[i];
-    }
-    print f, ffta[i]
-  }
-  print resultf, result
+    for i in range(len(ffta)):
+    	f = i/cw*fs
+    	if ffta[i] > result:
+      	    resultf = f
+	    result = ffta[i]
+	#print ffta[i]
+    print resultf, result
     #print out[0]
     # with open("out.csv", 'wb') as write:
     #     writer = csv.writer(write)
@@ -101,7 +106,5 @@ if __name__ == "__main__":
     #plt.plot(data)
     # print len(data)
     #print out
-    plt.plot(out)
     # subprocess.call(["rm", "testcsv"])
     # subprocess.call(["gcc", "-o", "testcsv", "testcsv.c", "-lfftw3", "-lm"])
-    plt.show()

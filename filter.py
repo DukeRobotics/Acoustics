@@ -7,7 +7,7 @@ import sys
 
 fs = 130000
 
-time = 2.05
+time = 2.15
 
 #running average get time section, fft get phase comparison, multichannels
 
@@ -64,12 +64,12 @@ if __name__ == "__main__":
     #         except:
     #             continue
     try:
-        out = cheby2_bandpass_filter(data, freq-50, freq+50, fs)
+        out = cheby2_bandpass_filter(data[13000:], freq-50, freq+50, fs)
     except Exception as e:
         print(e)
     start = moving_average(out)
     print start
-    outw = out[int(start-fs*0.004*3):int(start+fs*0.004)]
+    outw = out[int(start-fs*0.004*6):int(start+fs*0.004*6)]
     time = np.linspace(0, fs*0.004*10, num=len(outw))
     #print out[0]
     # with open("out.csv", 'wb') as write:

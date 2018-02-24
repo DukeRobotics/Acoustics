@@ -52,9 +52,9 @@ int main (int argc, char **argv) {
 	fftw_complex *out;
 	double *in;
 	fftw_plan p;
-	int freqs = argv[2];
+	int freqs = atoi(argv[2]);
 	//int freq = 6000;
-	int times = argv[1];
+	int times = atof(argv[1]);
 	int count = times*freqs;
 	int freqmin = 0;
 	int freqmax = 60000;

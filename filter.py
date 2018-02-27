@@ -24,7 +24,7 @@ def cheby2_bandpass_filter(data, lowcut, highcut, fs, order=5):
     y = lfilter(b, a, data)
     return y
 
-def moving_average(a, n = pinc*3) :
+def moving_average(a, n = pingc*3) :
     weights = np.repeat(1.0, n)/n
     alist = np.convolve(a, weights, 'valid')
     #ret = np.cumsum(a, dtype=float)
@@ -83,18 +83,18 @@ if __name__ == "__main__":
         end = int(end)
     outw = out[start:end+1]
     dataw = data[start:end+1]
-    time = np.linspace(start/ts, end/ts, end-start+1)
+    time = np.linspace(start/fs, end/fs, end-start+1)
 
     #fft
     fft = np.fft.fft(dataw)
     ffta = np.absolute(fft)
-    time = np.linspace(0, pingc*10, num=len(outw))
     result = 0
     resultf = 0
 
     #find max
+    timew = (end-start+1)/float(fs)
     for i in range (len(ffta)):
-        f = i/ts;
+        f = i/timew;
         if ffta[i] > result:
             resultf = f
             result = ffta[i]
@@ -109,7 +109,5 @@ if __name__ == "__main__":
     #plt.plot(data)
     # print len(data)
     #print out
-    plt.plot(out)
     # subprocess.call(["rm", "testcsv"])
     # subprocess.call(["gcc", "-o", "testcsv", "testcsv.c", "-lfftw3", "-lm"])
-    plt.show()

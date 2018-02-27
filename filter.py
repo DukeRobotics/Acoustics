@@ -90,6 +90,7 @@ if __name__ == "__main__":
     ffta = np.absolute(fft)
     result = 0
     resultf = 0
+    resulti = 0
 
     #find max
     timew = (end-start+1)/float(fs)
@@ -97,16 +98,20 @@ if __name__ == "__main__":
         f = i/timew;
         if ffta[i] > result:
             resultf = f
+            resulti = i
             result = ffta[i]
         print fft[i], ffta[i], f
 
-    print result, resultf
+    resultp = np.imag(result)/np.real(result)/(2 * math.pi * resultf)
+    #timediff = phase/(2pi*freq)
+    print result, resultf, resultp
     #print out[0]
     # with open("out.csv", 'wb') as write:
     #     writer = csv.writer(write)
     #     for point in out:
     #         writer.writerow([round(point, 4)])
-    #plt.plot(data)
+    plt.plot(outw)
+    plt.show()
     # print len(data)
     #print out
     # subprocess.call(["rm", "testcsv"])

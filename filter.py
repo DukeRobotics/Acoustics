@@ -40,13 +40,14 @@ def moving_average(a, n = pinc*3) :
     return maxi
 
 if __name__ == "__main__":
+    #sampling
     data = []
     freq = int(sys.argv[1])
     process = subprocess.Popen(["/home/robot/Desktop/mcc-libusb/sampling", str(ts), str(fs)], stdout = subprocess.PIPE)
     stddata, stderror = process.communicate()
 
+    #parse data from stdin
     datas = stddata.split("\n")
-
     for d in datas:
         try:
             p = float(d)
@@ -63,36 +64,43 @@ if __name__ == "__main__":
     #             data.append(p)
     #         except:
     #             continue
+
+    #bandpass
     try:
         out = cheby2_bandpass_filter(data[13000:], freq-50, freq+50, fs)
     except Exception as e:
         print(e)
+
+    #find window with moving_average
     avem = moving_average(out)
     start = 0
-    end = 0
-    if avem-pingc*6 > 0:
+    end = len(out) - 1
+    if avem-pingc*6 > start:
         start = avem-pingc*6
         start = int(start)
-    if avem+pingc*6 < len(out):
+    if avem+pingc*6 < end:
         end = avem+pingc*6
         end = int(end)
-    outw = out[start:end]
-    dataw = data[start: end]
+    outw = out[start:end+1]
+    dataw = data[start:end+1]
+    time = np.linspace(start/ts, end/ts, end-start+1)
+
+    #fft
     fft = np.fft.fft(dataw)
     ffta = np.absolute(fft)
     time = np.linspace(0, pingc*10, num=len(outw))
-
     result = 0
     resultf = 0
-	for i in range(len(ffta)) {
-    f = i/time;
-    if (ffta[i] > result) {
-      resultf = f;
-      result = ffta[i];
-    }
-    print f, ffta[i]
-  }
-  print resultf, result
+
+    #find max
+    for i in range (len(ffta)):
+        f = i/ts;
+        if ffta[i] > result:
+            resultf = f
+            result = ffta[i]
+        print fft[i], ffta[i], f
+
+    print result, resultf
     #print out[0]
     # with open("out.csv", 'wb') as write:
     #     writer = csv.writer(write)

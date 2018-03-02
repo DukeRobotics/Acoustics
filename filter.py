@@ -8,7 +8,7 @@ import math
 
 fs = 130000
 
-ts = 2.15
+ts = 3
 pingc = fs*0.004
 
 #running average get time section, fft get phase comparison, multichannels
@@ -69,7 +69,7 @@ if __name__ == "__main__":
 
     #bandpass
     try:
-        out = cheby2_bandpass_filter(data, freq-50, freq+50, fs)
+        out = cheby2_bandpass_filter(data, freq-250, freq+250, fs)
     except Exception as e:
         print(e)
 
@@ -83,15 +83,16 @@ if __name__ == "__main__":
     if avem+pingc*6 < end:
         end = avem+pingc*6
         end = int(end)
-    print start, end
+    print avem, start, end
     outw = out[start:(end+1)]
     dataw = data[start:(end+1)]
     time = np.linspace(start/fs, end/fs, end-start+1)
 
     #fft
-    fft = np.fft.fft(dataw)
+    fft = np.fft.fft(outw)
     ffta = np.absolute(fft)
     result = 0
+    resultc = 0
     resultf = 0
     resulti = 0
 
@@ -104,9 +105,10 @@ if __name__ == "__main__":
             resultf = f
             resulti = i
             result = ffta[i]
+	    resultc = fft[i]
         #print fft[i], ffta[i], f
 
-    resultp = np.imag(result)/np.real(result)/(2 * math.pi * resultf)
+    resultp = np.imag(resultc)/np.real(resultc)/(2 * math.pi * resultf)
     #timediff = phase/(2pi*freq)
     print result, resultf, resultp
     #print out[0]
@@ -118,7 +120,7 @@ if __name__ == "__main__":
         writer = csv.writer(write)
         for point in dataw:
             writer.writerow([round(point, 4)])
-    #plt.plot(dataw)
+    plt.plot(out)
     plt.plot(outw)
     plt.show()
     # print len(data)

@@ -89,8 +89,8 @@ int main (int argc, char **argv) {
 	usbAInScanStop_USB1608G(udev);
 	usbAInScanClearFIFO_USB1608G(udev);
 	mode = DIFFERENTIAL;
-	gain = BP_1V;
-	nchan = 1;
+	gain = BP_10V;
+	nchan = 3;
 	nScans = count;
 	frequency = freqs;
 
@@ -124,6 +124,7 @@ int main (int argc, char **argv) {
 			data = rint(sdataIn[k]*table_AIN[gain][0] + table_AIN[gain][1]);
 
 			printf("%8.4lf", volts_USB1608G(gain, data));
+			printf(",");
 			//fprintf(fp, "%8.4lf\n", volts_USB1608G(gain, data));
 			// in[i] = volts_USB1608G(gain, data);
 		}

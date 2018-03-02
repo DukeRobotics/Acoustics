@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import subprocess
 import numpy as np
 import sys
+import math
 
 fs = 130000
 
@@ -54,6 +55,7 @@ if __name__ == "__main__":
             data.append(p)
         except:
             continue
+    data = data[13000:]
 
     # with open("data.csv", 'rb') as filec:
     #     reader = csv.reader(filec)
@@ -67,7 +69,7 @@ if __name__ == "__main__":
 
     #bandpass
     try:
-        out = cheby2_bandpass_filter(data[13000:], freq-50, freq+50, fs)
+        out = cheby2_bandpass_filter(data, freq-50, freq+50, fs)
     except Exception as e:
         print(e)
 
@@ -81,8 +83,9 @@ if __name__ == "__main__":
     if avem+pingc*6 < end:
         end = avem+pingc*6
         end = int(end)
-    outw = out[start:end+1]
-    dataw = data[start:end+1]
+    print start, end
+    outw = out[start:(end+1)]
+    dataw = data[start:(end+1)]
     time = np.linspace(start/fs, end/fs, end-start+1)
 
     #fft
@@ -94,22 +97,28 @@ if __name__ == "__main__":
 
     #find max
     timew = (end-start+1)/float(fs)
-    for i in range (len(ffta)):
+    print timew
+    for i in range(len(ffta)):
         f = i/timew;
         if ffta[i] > result:
             resultf = f
             resulti = i
             result = ffta[i]
-        print fft[i], ffta[i], f
+        #print fft[i], ffta[i], f
 
     resultp = np.imag(result)/np.real(result)/(2 * math.pi * resultf)
     #timediff = phase/(2pi*freq)
     print result, resultf, resultp
     #print out[0]
-    # with open("out.csv", 'wb') as write:
-    #     writer = csv.writer(write)
-    #     for point in out:
-    #         writer.writerow([round(point, 4)])
+    with open("out.csv", 'wb') as write:
+        writer = csv.writer(write)
+        for point in outw:
+            writer.writerow([round(point, 4)])
+    with open("data.csv", 'wb') as write:
+        writer = csv.writer(write)
+        for point in dataw:
+            writer.writerow([round(point, 4)])
+    #plt.plot(dataw)
     plt.plot(outw)
     plt.show()
     # print len(data)

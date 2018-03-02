@@ -89,7 +89,7 @@ int main (int argc, char **argv) {
 	usbAInScanStop_USB1608G(udev);
 	usbAInScanClearFIFO_USB1608G(udev);
 	mode = DIFFERENTIAL;
-	gain = BP_10V;
+	gain = BP_1V;
 	nchan = 1;
 	nScans = count;
 	frequency = freqs;

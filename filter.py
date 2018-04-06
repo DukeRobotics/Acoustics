@@ -32,7 +32,7 @@ def phase_diff(late, early):
     if late > early:
         return late - early
     else:
-        return late - (early - cycle)
+        return late - (early - 2*math.pi)
 
 def moving_average(a, n = pingc*3) :
     weights = np.repeat(1.0, n)/n
@@ -150,14 +150,14 @@ if __name__ == "__main__":
         dphase_x = phase_diff(resultp1, resultp0)
         dphase_y = phase_diff(resultp2, resultp0)
     elif order[1] == 0:
-        dphase_x = phase_diff(resultp0, resultp1)
-        dphase_y = phase_diff(resultp0, resultp2)
+        dphase_x = -phase_diff(resultp0, resultp1) #should be phase(0) - phase(1)
+        dphase_y = -phase_diff(resultp0, resultp2) #should be phase(0) - phase(2)
     elif order[0] == 1:
-        dphase_x = phase_diff(resultp0, resultp1)
+        dphase_x = -phase_diff(resultp0, resultp1)
         dphase_y = phase_diff(resultp2, resultp0)
     else:
         dphase_x = phase_diff(resultp1, resultp0)
-        dphase_y = phase_diff(resultp0, resultp2)
+        dphase_y = -phase_diff(resultp0, resultp2)
     # dphase_x = abs(resultp1 - resultp0) #01 as x direction
     # dphase_y = abs(resultp2 - resultp0) #02 as y direction
     #timediff = phase/(2pi*freq)
@@ -167,20 +167,22 @@ if __name__ == "__main__":
     kx = vsound * dphase_x/ (spac * 2 * math.pi * resultf);
     ky = vsound * dphase_y/ (spac * 2 * math.pi * resultf);
     kz2 = 1 - kx*kx - ky*ky
+    print order, dphase_x, dphase_y
+    print kz2, kx, ky
     heading = math.atan(ky/kx)
-    elevation = math.asin(sqrt(kz2))
-    print result, resultf
+    #elevation = math.asin(math.sqrt(kz2))
+    print result, resultf, heading
     print resultp0, resultp1, resultp2, cycle
     #print out[0]
     with open("out.csv", 'wb') as write:
         writer = csv.writer(write)
         for point in outw:
             writer.writerow([round(point, 4)])
-    plt.plot(outw)
+    #plt.plot(out)
     plt.plot(outw0)
     plt.plot(outw1)
     plt.plot(outw2)
-    plt.show()
+    #plt.show()
     # print len(data)
     #print out
     # subprocess.call(["rm", "testcsv"])

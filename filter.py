@@ -110,9 +110,9 @@ if __name__ == "__main__":
     time = np.linspace(start/fs, end/fs, end-start+1)
 
     #todo: the order of wave hitting hydrophone
-    max0 = np.argmax(outw0)
-    max1 = np.argmax(outw1)
-    max2 = np.argmax(outw2)
+    max0 = moving_average(outw0, pingc)
+    max1 = moving_average(outw1, pingc)
+    max2 = moving_average(outw2, pingc)
     order = [np.argmin([max0, max1, max2]), np.argmax([max0, max1, max2])]
 
     #fft

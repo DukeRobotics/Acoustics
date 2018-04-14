@@ -55,8 +55,11 @@ if __name__ == "__main__":
     data1 = []
     data2 = []
     freq = int(sys.argv[1])
-    process = subprocess.Popen(["/home/robot/Desktop/mcc-libusb/sampling", str(ts), str(fs)], stdout = subprocess.PIPE)
+    process = subprocess.Popen(["/home/estellehe/Desktop/Linux_Drivers/USB/mcc-libusb/sampling", str(ts), str(fs)], stdout = subprocess.PIPE)
     stddata, stderror = process.communicate()
+    if "fail" in stddata:
+        print "fail to collect data"
+        sys.exit()
 
     #parse data from stdin
     datas = stddata.split("\n")

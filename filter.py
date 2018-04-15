@@ -14,6 +14,7 @@ vsound = 1481
 spac = 0.016
 cycle = 1/float(fs)
 
+
 #running average get time section, fft get phase comparison, multichannels
 
 def cheby2_bandpass(lowcut, highcut, fs, order=5):
@@ -40,6 +41,12 @@ def moving_average(a, n = pingc*3) :
     #ret = np.cumsum(a, dtype=float)
     #ret[n:] = ret[n:] - ret[:-n]
     #alist = ret[n - 1:] / n
+    # aglist = np.gradient(alist)
+    # print aglist
+    # for k in range(len(aglist)):
+    #     ave = aglist[k]
+    #     if ave < 0:
+    #         return k
     maxa = 0
     maxi = 0
     for k in range(len(alist)):
@@ -58,9 +65,10 @@ if __name__ == "__main__":
     process = subprocess.Popen(["/home/estellehe/Desktop/Linux_Drivers/USB/mcc-libusb/sampling", str(ts), str(fs)], stdout = subprocess.PIPE)
     stddata, stderror = process.communicate()
     if "fail" in stddata:
-        print "fail to collect data"
+        print stddata
         sys.exit()
 
+    mw = fs/freq*3
     #parse data from stdin
     datas = stddata.split("\n")
     for d in datas:
@@ -95,7 +103,8 @@ if __name__ == "__main__":
 
     #find window with moving_average
     out = out0+out1+out2
-    avem = moving_average(out)
+    outsq = np.absolute(out)
+    avem = moving_average(outsq)
     start = 0
     end = len(out) - 1
     if avem-pingc*6 > start:
@@ -104,7 +113,7 @@ if __name__ == "__main__":
     if avem+pingc*6 < end:
         end = avem+pingc*6
         end = int(end)
-    print avem, start, end
+    print "avem, start, end", avem, start, end
     outw0 = out0[start:(end+1)]
     outw1 = out1[start:(end+1)]
     outw2 = out2[start:(end+1)]
@@ -117,6 +126,7 @@ if __name__ == "__main__":
     max1 = moving_average(outw1, pingc)
     max2 = moving_average(outw2, pingc)
     order = [np.argmin([max0, max1, max2]), np.argmax([max0, max1, max2])]
+    order = [1, 2]
 
     #fft
     fft0 = np.fft.fft(outw0)
@@ -170,22 +180,32 @@ if __name__ == "__main__":
     kx = vsound * dphase_x/ (spac * 2 * math.pi * resultf);
     ky = vsound * dphase_y/ (spac * 2 * math.pi * resultf);
     kz2 = 1 - kx*kx - ky*ky
-    print order, dphase_x, dphase_y
-    print kz2, kx, ky
+    print "max0, max1, max2", max0, max1, max2
+    print "order, dphase_x, dphase_y", order, dphase_x, dphase_y
+    print "kz2, kx, ky", kz2, kx, ky
     heading = math.atan(ky/kx)
     #elevation = math.asin(math.sqrt(kz2))
-    print result, resultf, heading
-    print resultp0, resultp1, resultp2, cycle
+    print "result, resultf, heading", result, resultf, heading
+    print "resultp0, resultp1, resultp2, cycle", resultp0, resultp1, resultp2, cycle
     #print out[0]
     with open("out.csv", 'wb') as write:
         writer = csv.writer(write)
         for point in outw:
             writer.writerow([round(point, 4)])
     #plt.plot(out)
+    plt.figure()
     plt.plot(outw0)
     plt.plot(outw1)
     plt.plot(outw2)
-    #plt.show()
+
+    plt.figure()
+    plt.plot(out0)
+    plt.plot(out1)
+    plt.plot(out2)
+
+    plt.figure()
+    plt.plot(out)
+    plt.show()
     # print len(data)
     #print out
     # subprocess.call(["rm", "testcsv"])

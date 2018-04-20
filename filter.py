@@ -13,6 +13,8 @@ pingc = fs*0.004
 vsound = 1481
 spac = 0.016
 cycle = 1/float(fs)
+bandpassw = 500
+fftfreqw = 500
 
 
 #running average get time section, fft get phase comparison, multichannels
@@ -29,11 +31,15 @@ def cheby2_bandpass_filter(data, lowcut, highcut, fs, order=5):
     y = lfilter(b, a, data)
     return y
 
-def phase_diff(late, early):
-    if late > early:
-        return late - early
-    else:
-        return late - (early - 2*math.pi)
+def phase_diff(p1, p2):
+    # p1 should be channel 0
+    diff = p1 - p2
+    if diff > np.pi:
+        diff = diff - 2*np.pi
+    if diff < -np.pi:
+        diff = diff + 2*np.pi
+    return diff
+
 
 def moving_average(a, n = pingc*3) :
     weights = np.repeat(1.0, n)/n
@@ -68,7 +74,6 @@ if __name__ == "__main__":
         print stddata
         sys.exit()
 
-    mw = fs/freq*3
     #parse data from stdin
     datas = stddata.split("\n")
     for d in datas:
@@ -95,9 +100,9 @@ if __name__ == "__main__":
 
     #bandpass
     try:
-        out0 = cheby2_bandpass_filter(data0, freq-250, freq+250, fs)
-        out1 = cheby2_bandpass_filter(data1, freq-250, freq+250, fs)
-        out2 = cheby2_bandpass_filter(data2, freq-250, freq+250, fs)
+        out0 = cheby2_bandpass_filter(data0, freq-bandpassw/2, freq+bandpassw/2, fs)
+        out1 = cheby2_bandpass_filter(data1, freq-bandpassw/2, freq+bandpassw/2, fs)
+        out2 = cheby2_bandpass_filter(data2, freq-bandpassw/2, freq+bandpassw/2, fs)
     except Exception as e:
         print(e)
 
@@ -121,12 +126,13 @@ if __name__ == "__main__":
     #dataw = data[start:(end+1)]
     time = np.linspace(start/fs, end/fs, end-start+1)
 
+
     #todo: the order of wave hitting hydrophone
-    max0 = moving_average(outw0, pingc)
-    max1 = moving_average(outw1, pingc)
-    max2 = moving_average(outw2, pingc)
-    order = [np.argmin([max0, max1, max2]), np.argmax([max0, max1, max2])]
-    order = [1, 2]
+    # max0 = moving_average(outw0, pingc)
+    # max1 = moving_average(outw1, pingc)
+    # max2 = moving_average(outw2, pingc)
+    # order = [np.argmin([max0, max1, max2]), np.argmax([max0, max1, max2])]
+    # order = [1, 2]
 
     #fft
     fft0 = np.fft.fft(outw0)
@@ -153,38 +159,47 @@ if __name__ == "__main__":
             result = ffta[i]
 	    resultc = i
         #print fft[i], ffta[i], f
+    if np.absolute(resultf-freq)>fftfreqw:
+        print "fft output wrong max magnitude for freq, bad data"
+        sys.exit()
 
     resultp0 = np.angle(fft0[resultc]) #origin point
     resultp1 = np.angle(fft1[resultc])
     resultp2 = np.angle(fft2[resultc])
     cycle = 1/float(fs)
+    dphase_x = phase_diff(resultp0, resultp1)
+    dphase_y = phase_diff(resultp0, resultp2)
 
-    if order[0] == 0:
-        dphase_x = phase_diff(resultp1, resultp0)
-        dphase_y = phase_diff(resultp2, resultp0)
-    elif order[1] == 0:
-        dphase_x = -phase_diff(resultp0, resultp1) #should be phase(0) - phase(1)
-        dphase_y = -phase_diff(resultp0, resultp2) #should be phase(0) - phase(2)
-    elif order[0] == 1:
-        dphase_x = -phase_diff(resultp0, resultp1)
-        dphase_y = phase_diff(resultp2, resultp0)
-    else:
-        dphase_x = phase_diff(resultp1, resultp0)
-        dphase_y = -phase_diff(resultp0, resultp2)
+    # if order[0] == 0:
+    #     dphase_x = phase_diff(resultp1, resultp0)
+    #     dphase_y = phase_diff(resultp2, resultp0)
+    # elif order[1] == 0:
+    #     dphase_x = -phase_diff(resultp0, resultp1) #should be phase(0) - phase(1)
+    #     dphase_y = -phase_diff(resultp0, resultp2) #should be phase(0) - phase(2)
+    # elif order[0] == 1:
+    #     dphase_x = -phase_diff(resultp0, resultp1)
+    #     dphase_y = phase_diff(resultp2, resultp0)
+    # else:
+    #     dphase_x = phase_diff(resultp1, resultp0)
+    #     dphase_y = -phase_diff(resultp0, resultp2)
     # dphase_x = abs(resultp1 - resultp0) #01 as x direction
     # dphase_y = abs(resultp2 - resultp0) #02 as y direction
     #timediff = phase/(2pi*freq)
 
-    #the nipple distance need to be one wavelength of the target frequency
-    #since we can only get phase diff within one cycle
+    #the nipple distance need to be half wavelength of the target frequency
+    #since we can only get phase diff within one cycle, and half cycle gives us the order of channel
+    # dphase_x = abs(resultp1 - resultp0) #0-1 as x direction
+    # dphase_y = abs(resultp2 - resultp0) #0-2 as y direction
+    # the horizontal angle is counterclock from positive x-axis(0-1)
+    # the elevation angle is looking down from the bot (parallel would be 0 degree)
     kx = vsound * dphase_x/ (spac * 2 * math.pi * resultf);
     ky = vsound * dphase_y/ (spac * 2 * math.pi * resultf);
     kz2 = 1 - kx*kx - ky*ky
     print "max0, max1, max2", max0, max1, max2
     print "order, dphase_x, dphase_y", order, dphase_x, dphase_y
     print "kz2, kx, ky", kz2, kx, ky
-    heading = math.atan(ky/kx)
-    #elevation = math.asin(math.sqrt(kz2))
+    heading = np.arctan2(ky, kx)
+    #elevation = math.acos(math.sqrt(kz2))
     print "result, resultf, heading", result, resultf, heading
     print "resultp0, resultp1, resultp2, cycle", resultp0, resultp1, resultp2, cycle
     #print out[0]

@@ -41,7 +41,7 @@ def phase_diff(p1, p2):
     return diff
 
 
-def moving_average(a, n = pingc*3) :
+def moving_average(a, n = pingc) :
     weights = np.repeat(1.0, n)/n
     alist = np.convolve(a, weights, 'valid')
     #ret = np.cumsum(a, dtype=float)
@@ -112,11 +112,11 @@ if __name__ == "__main__":
     avem = moving_average(outsq)
     start = 0
     end = len(out) - 1
-    if avem-pingc*6 > start:
-        start = avem-pingc*6
+    if avem-int(pingc*6) > start:
+        start = avem-int(pingc*6)
         start = int(start)
-    if avem+pingc*6 < end:
-        end = avem+pingc*6
+    if avem-int(pingc/30) < end:
+        end = avem-int(pingc/30)
         end = int(end)
     print "avem, start, end", avem, start, end
     outw0 = out0[start:(end+1)]
@@ -143,7 +143,8 @@ if __name__ == "__main__":
     ffta2 = np.absolute(fft2)
     fft = np.fft.fft(outw)
     ffta = np.absolute(fft)
-    result = 0
+    #result = 0
+    result = 1000000
     resultc = 0
     resultf = 0
     resulti = 0
@@ -151,12 +152,19 @@ if __name__ == "__main__":
     #find max
     timew = (end-start+1)/float(fs)
     print timew
+    # for i in range(int(len(ffta)/2)):
+    #     f = i/timew;
+    #     if ffta[i] > result:
+    #         resultf = f
+    #         resulti = i
+    #         result = ffta[i]
+	#     resultc = i
     for i in range(int(len(ffta)/2)):
-        f = i/timew;
-        if ffta[i] > result:
+        f = i/timew
+        if np.absolute(f-freq) < result:
             resultf = f
             resulti = i
-            result = ffta[i]
+            result = np.absolute(f-freq)
 	    resultc = i
         #print fft[i], ffta[i], f
     if np.absolute(resultf-freq)>fftfreqw:
@@ -167,8 +175,8 @@ if __name__ == "__main__":
     resultp1 = np.angle(fft1[resultc])
     resultp2 = np.angle(fft2[resultc])
     cycle = 1/float(fs)
-    dphase_x = phase_diff(resultp0, resultp1)
-    dphase_y = phase_diff(resultp0, resultp2)
+    dphase_x = phase_diff(resultp1, resultp0)
+    dphase_y = phase_diff(resultp2, resultp0)
 
     # if order[0] == 0:
     #     dphase_x = phase_diff(resultp1, resultp0)
@@ -195,8 +203,8 @@ if __name__ == "__main__":
     kx = vsound * dphase_x/ (spac * 2 * math.pi * resultf);
     ky = vsound * dphase_y/ (spac * 2 * math.pi * resultf);
     kz2 = 1 - kx*kx - ky*ky
-    print "max0, max1, max2", max0, max1, max2
-    print "order, dphase_x, dphase_y", order, dphase_x, dphase_y
+    #print "max0, max1, max2", max0, max1, max2
+    print "dphase_x, dphase_y", dphase_x, dphase_y
     print "kz2, kx, ky", kz2, kx, ky
     heading = np.arctan2(ky, kx)
     #elevation = math.acos(math.sqrt(kz2))
@@ -213,13 +221,13 @@ if __name__ == "__main__":
     plt.plot(outw1)
     plt.plot(outw2)
 
-    plt.figure()
-    plt.plot(out0)
-    plt.plot(out1)
-    plt.plot(out2)
+    # plt.figure()
+    # plt.plot(out0)
+    # plt.plot(out1)
+    # plt.plot(out2)
 
-    plt.figure()
-    plt.plot(out)
+    # plt.figure()
+    # plt.plot(out)
     plt.show()
     # print len(data)
     #print out

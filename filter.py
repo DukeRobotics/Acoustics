@@ -40,8 +40,18 @@ def phase_diff(p1, p2):
         diff = diff + 2*np.pi
     return diff
 
+def moving_average_double(a, n = pingc/10):
+    weights = np.repeat(1.0, n)/n
+    alist = np.convolve(a, weights, 'valid')
+    lasta = alist[0]
+    for k in range(len(alist)):
+    	ave = alist[k]
+    	if ave > lasta*2:
+    	    return k
+    return 0
 
-def moving_average(a, n = pingc) :
+
+def moving_average_max(a, n = pingc) :
     weights = np.repeat(1.0, n)/n
     alist = np.convolve(a, weights, 'valid')
     #ret = np.cumsum(a, dtype=float)
@@ -109,14 +119,14 @@ if __name__ == "__main__":
     #find window with moving_average
     out = out0+out1+out2
     outsq = np.absolute(out)
-    avem = moving_average(outsq)
+    avem = moving_average_max(outsq)
     start = 0
     end = len(out) - 1
     if avem-int(pingc*6) > start:
         start = avem-int(pingc*6)
         start = int(start)
-    if avem-int(pingc/30) < end:
-        end = avem-int(pingc/30)
+    if avem+int(pingc) < end:
+        end = avem+int(pingc)
         end = int(end)
     print "avem, start, end", avem, start, end
     outw0 = out0[start:(end+1)]
@@ -125,6 +135,20 @@ if __name__ == "__main__":
     outw = out[start:(end+1)]
     #dataw = data[start:(end+1)]
     time = np.linspace(start/fs, end/fs, end-start+1)
+
+    aved = moving_average_double(np.absolute(outw))
+    starts = 0
+    ends = len(outw)-1
+    if aved-int(pingc) > starts:
+        starts = aved-int(pingc)
+        starts = int(start)
+    if aved+int(pingc/30) < ends:
+        ends = aved+int(pingc/30)
+        ends = int(end)
+    outsw0 = outw0[starts:(ends+1)]
+    outsw1 = outw1[starts:(ends+1)]
+    outsw2 = outw2[starts:(ends+1)]
+    outsw = outw[starts:(ends+1)]
 
 
     #todo: the order of wave hitting hydrophone
@@ -213,13 +237,13 @@ if __name__ == "__main__":
     #print out[0]
     with open("out.csv", 'wb') as write:
         writer = csv.writer(write)
-        for point in outw:
-            writer.writerow([round(point, 4)])
+        for k in range(len(out):
+            writer.writerow([round(out0, 4), round(out1, 4), round(out2, 4), round(out, 4)])
     #plt.plot(out)
     plt.figure()
-    plt.plot(outw0)
-    plt.plot(outw1)
-    plt.plot(outw2)
+    plt.plot(outsw0)
+    plt.plot(outsw1)
+    plt.plot(outsw2)
 
     # plt.figure()
     # plt.plot(out0)

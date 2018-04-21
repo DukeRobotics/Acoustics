@@ -46,8 +46,8 @@ def moving_average_double(a, n = pingc/10):
     lasta = alist[0]
     for k in range(len(alist)):
     	ave = alist[k]
-    	if ave > lasta*2:
-    	    return k
+    	if ave > lasta*5:
+    	    return int(k+n)
     return 0
 
 
@@ -141,10 +141,11 @@ if __name__ == "__main__":
     ends = len(outw)-1
     if aved-int(pingc) > starts:
         starts = aved-int(pingc)
-        starts = int(start)
+        starts = int(starts)
     if aved+int(pingc/30) < ends:
         ends = aved+int(pingc/30)
-        ends = int(end)
+        ends = int(ends)
+    print "aved, start, end", aved, starts, ends
     outsw0 = outw0[starts:(ends+1)]
     outsw1 = outw1[starts:(ends+1)]
     outsw2 = outw2[starts:(ends+1)]
@@ -159,13 +160,13 @@ if __name__ == "__main__":
     # order = [1, 2]
 
     #fft
-    fft0 = np.fft.fft(outw0)
+    fft0 = np.fft.fft(outsw0)
     ffta0 = np.absolute(fft0)
-    fft1 = np.fft.fft(outw1)
+    fft1 = np.fft.fft(outsw1)
     ffta1 = np.absolute(fft1)
-    fft2 = np.fft.fft(outw2)
+    fft2 = np.fft.fft(outsw2)
     ffta2 = np.absolute(fft2)
-    fft = np.fft.fft(outw)
+    fft = np.fft.fft(outsw)
     ffta = np.absolute(fft)
     #result = 0
     result = 1000000
@@ -174,7 +175,7 @@ if __name__ == "__main__":
     resulti = 0
 
     #find max
-    timew = (end-start+1)/float(fs)
+    timew = (ends-starts+1)/float(fs)
     print timew
     # for i in range(int(len(ffta)/2)):
     #     f = i/timew;
@@ -193,6 +194,7 @@ if __name__ == "__main__":
         #print fft[i], ffta[i], f
     if np.absolute(resultf-freq)>fftfreqw:
         print "fft output wrong max magnitude for freq, bad data"
+        print "resultf", resultf
         sys.exit()
 
     resultp0 = np.angle(fft0[resultc]) #origin point
@@ -231,24 +233,24 @@ if __name__ == "__main__":
     print "dphase_x, dphase_y", dphase_x, dphase_y
     print "kz2, kx, ky", kz2, kx, ky
     heading = np.arctan2(ky, kx)
-    #elevation = math.acos(math.sqrt(kz2))
-    print "result, resultf, heading", result, resultf, heading
+    elevation = math.acos(math.sqrt(kz2))
+    print "result, resultf, heading, elevation", result, resultf, heading, elevation
     print "resultp0, resultp1, resultp2, cycle", resultp0, resultp1, resultp2, cycle
     #print out[0]
     with open("out.csv", 'wb') as write:
         writer = csv.writer(write)
-        for k in range(len(out):
-            writer.writerow([round(out0, 4), round(out1, 4), round(out2, 4), round(out, 4)])
+        for k in range(len(out)):
+            writer.writerow([round(out0[k], 4), round(out1[k], 4), round(out2[k], 4), round(out[k], 4)])
     #plt.plot(out)
     plt.figure()
     plt.plot(outsw0)
     plt.plot(outsw1)
     plt.plot(outsw2)
 
-    # plt.figure()
-    # plt.plot(out0)
-    # plt.plot(out1)
-    # plt.plot(out2)
+    plt.figure()
+    plt.plot(outw0)
+    plt.plot(outw1)
+    plt.plot(outw2)
 
     # plt.figure()
     # plt.plot(out)

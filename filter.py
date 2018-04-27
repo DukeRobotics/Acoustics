@@ -1,8 +1,8 @@
-from scipy.signal import cheby2, lfilter
 import csv
 import matplotlib.pyplot as plt
-import subprocess
 import numpy as np
+from scipy.signal import cheby2, lfilter
+from scipy.optimize import leastsq
 import sys
 import math
 

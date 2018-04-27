@@ -163,17 +163,15 @@ if __name__ == "__main__":
     guess_std = 1
     t = np.arange(len(outsw0))
 
-    optimize_func0 = lambda x: np.absolute(x[0])*t*np.sin(x[2]*(t+x[1])) - outsw0
-    optimize_func1 = lambda x: np.absolute(x[0])*t*np.sin(x[2]*(t+x[1])) - outsw1
-    optimize_func2 = lambda x: np.absolute(x[0])*t*np.sin(x[2]*(t+x[1])) - outsw2
+    optimize_func0 = lambda x: np.absolute(x[0])*t*np.sin(x[2]*t+x[1]) - outsw0
     est_std0, est_phase0, est_freq0 = leastsq(optimize_func0, [guess_std, guess_phase, guess_freq])[0]
-    est_std1, est_phase1, est_freq1 = leastsq(optimize_func1, [guess_std, guess_phase, guess_freq])[0]
-    est_std2, est_phase2, est_freq2 = leastsq(optimize_func2, [guess_std, guess_phase, guess_freq])[0]
-    data_fit0 = np.absolute(est_std0)*t*np.sin(est_freq0*(t+est_phase0))
-    data_fit1 = np.absolute(est_std1)*t*np.sin(est_freq1*(t+est_phase1))
-    data_fit2 = np.absolute(est_std2)*t*np.sin(est_freq2*(t+est_phase2))
-    print "amp", est_std0, est_std1, est_std2
-    print "freq", est_freq0, est_freq1, est_freq2
+    optimize_func1 = lambda x: np.absolute(x[0])*t*np.sin(est_freq0*t+x[1]) - outsw1
+    optimize_func2 = lambda x: np.absolute(x[0])*t*np.sin(est_freq0*t+x[1]) - outsw2
+    est_std1, est_phase1 = leastsq(optimize_func1, [guess_std, guess_phase])[0]
+    est_std2, est_phase2 = leastsq(optimize_func2, [guess_std, guess_phase])[0]
+    data_fit0 = np.absolute(est_std0)*t*np.sin(est_freq0*t+est_phase0)
+    data_fit1 = np.absolute(est_std1)*t*np.sin(est_freq0*t+est_phase1)
+    data_fit2 = np.absolute(est_std2)*t*np.sin(est_freq0*t+est_phase2)
     print "phase", est_phase0, est_phase1, est_phase2
 
 

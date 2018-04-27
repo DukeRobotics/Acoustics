@@ -249,8 +249,8 @@ if __name__ == "__main__":
     # dphase_y = abs(resultp2 - resultp0) #0-2 as y direction
     # the horizontal angle is counterclock from positive x-axis(0-1)
     # the elevation angle is looking down from the bot (parallel would be 0 degree)
-    kx = vsound * dphase_x/ (spac * 2 * math.pi * resultf);
-    ky = vsound * dphase_y/ (spac * 2 * math.pi * resultf);
+    kx = vsound * dphase_x/ (spac * 2 * math.pi * freq);
+    ky = vsound * dphase_y/ (spac * 2 * math.pi * freq);
     kz2 = 1 - kx*kx - ky*ky
     #print "max0, max1, max2", max0, max1, max2
     print "dphase_x, dphase_y", dphase_x, dphase_y
@@ -260,7 +260,7 @@ if __name__ == "__main__":
         elevation = math.acos(math.sqrt(kz2))
     except:
         elevation = "Elevation out of range"
-    print "result, resultf, heading, elevation", result, resultf, heading, elevation
+    print "heading, elevation", heading, elevation
     print "resultp0, resultp1, resultp2, cycle", resultp0, resultp1, resultp2, cycle
     #print out[0]
     with open("out.csv", 'wb') as write:

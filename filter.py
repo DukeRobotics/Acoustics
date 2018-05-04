@@ -5,13 +5,14 @@ from scipy.signal import cheby2, lfilter
 from scipy.optimize import leastsq
 import sys
 import math
+import subprocess
 
 fs = 130000
 
 ts = 3
 pingc = fs*0.004
 vsound = 1481
-spac = 0.016
+spac = 0.01275
 cycle = 1/float(fs)
 bandpassw = 500
 fftfreqw = 500
@@ -32,7 +33,7 @@ def cheby2_bandpass_filter(data, lowcut, highcut, fs, order=5):
     return y
 
 def phase_diff(p1, p2):
-    # p1 should be channel 0
+    # p2 should be channel 0
     diff = p1 - p2
     if diff > np.pi:
         diff = diff - 2*np.pi
@@ -79,6 +80,22 @@ def moving_average_max(a, n = pingc) :
     	    maxi = k
     return maxi
 
+def sin_fit(guess_freq, outsw0, outsw1, outsw2):
+    guess_std = 1
+    guess_phase = 0
+    t = np.arange(len(outsw0))
+
+    optimize_func0 = lambda x: np.absolute(x[0])*t*np.sin(x[2]*t+x[1]) - outsw0
+    est_std0, est_phase0, est_freq0 = leastsq(optimize_func0, [guess_std, guess_phase, guess_freq])[0]
+    optimize_func1 = lambda x: np.absolute(x[0])*t*np.sin(est_freq0*t+x[1]) - outsw1
+    optimize_func2 = lambda x: np.absolute(x[0])*t*np.sin(est_freq0*t+x[1]) - outsw2
+    est_std1, est_phase1 = leastsq(optimize_func1, [guess_std, guess_phase])[0]
+    est_std2, est_phase2 = leastsq(optimize_func2, [guess_std, guess_phase])[0]
+    # data_fit0 = np.absolute(est_std0)*t*np.sin(est_freq0*t+est_phase0)
+    # data_fit1 = np.absolute(est_std1)*t*np.sin(est_freq0*t+est_phase1)
+    # data_fit2 = np.absolute(est_std2)*t*np.sin(est_freq0*t+est_phase2)
+    return est_phase0, est_phase1, est_phase2
+
 if __name__ == "__main__":
     #sampling
     data0 = []
@@ -96,9 +113,9 @@ if __name__ == "__main__":
     for d in datas:
 	ds = d.split(",")
         try:
-            data0.append(float(ds[0]))
-            data1.append(float(ds[1]))
-            data2.append(float(ds[2]))
+            data0.append(float(ds[1]))
+            data1.append(float(ds[2]))
+            data2.append(float(ds[0]))
         except:
             continue
     data0 = data0[13000:]
@@ -142,15 +159,17 @@ if __name__ == "__main__":
     outw = out[start:(end+1)]
     #dataw = data[start:(end+1)]
     time = np.linspace(start/fs, end/fs, end-start+1)
+    mag = np.sum(np.absolute(out))
+    print "magnitude", mag
 
     aved = moving_average_double(np.absolute(outw))
-    starts = aved
+    starts = 0
     ends = len(outw)-1
-    # if aved-int(pingc/) > starts:
-    #     starts = aved-int(pingc/50)
-    #     starts = int(starts)
-    if aved+int(pingc/30) < ends:
-        ends = aved+int(pingc/30)
+    if aved-int(pingc/60) > starts:
+        starts = aved-int(pingc/60)
+        starts = int(starts)
+    if aved+int(pingc/20) < ends:
+        ends = aved+int(pingc/20)
         ends = int(ends)
     print "aved, start, end", aved, starts, ends
     outsw0 = outw0[starts:(ends+1)]
@@ -159,20 +178,9 @@ if __name__ == "__main__":
     outsw = outw[starts:(ends+1)]
 
     guess_freq = 2*np.pi/fs*freq
-    guess_phase = 0
-    guess_std = 1
-    t = np.arange(len(outsw0))
 
-    optimize_func0 = lambda x: np.absolute(x[0])*t*np.sin(x[2]*t+x[1]) - outsw0
-    est_std0, est_phase0, est_freq0 = leastsq(optimize_func0, [guess_std, guess_phase, guess_freq])[0]
-    optimize_func1 = lambda x: np.absolute(x[0])*t*np.sin(est_freq0*t+x[1]) - outsw1
-    optimize_func2 = lambda x: np.absolute(x[0])*t*np.sin(est_freq0*t+x[1]) - outsw2
-    est_std1, est_phase1 = leastsq(optimize_func1, [guess_std, guess_phase])[0]
-    est_std2, est_phase2 = leastsq(optimize_func2, [guess_std, guess_phase])[0]
-    data_fit0 = np.absolute(est_std0)*t*np.sin(est_freq0*t+est_phase0)
-    data_fit1 = np.absolute(est_std1)*t*np.sin(est_freq0*t+est_phase1)
-    data_fit2 = np.absolute(est_std2)*t*np.sin(est_freq0*t+est_phase2)
-    print "phase", est_phase0, est_phase1, est_phase2
+    est_phase0, est_phase1, est_phase2 = sin_fit(guess_freq, outsw0, outsw1, outsw2)
+
 
 
     #todo: the order of wave hitting hydrophone
@@ -220,12 +228,35 @@ if __name__ == "__main__":
     #     print "resultf", resultf
     #     sys.exit()
 
-    resultp0 = clean_phase(est_phase0)
+    resultp0 = clean_phase(est_phase0) - np.pi*2/3
     resultp1 = clean_phase(est_phase1)
-    resultp2 = clean_phase(est_phase2)
+    resultp2 = clean_phase(est_phase2) + np.pi/2
     cycle = 1/float(fs)
     dphase_x = phase_diff(resultp1, resultp0)
     dphase_y = phase_diff(resultp2, resultp0)
+    # if np.absolute(dphase_x) < 0.5 or np.absolute(dphase_x) > (np.pi-0.5) or np.absolute(dphase_y) < 0.5 or np.absolute(dphase_y) > (np.pi-0.5):
+    #     starts = 0
+    #     ends = len(outw)-1
+    #     if aved-int(pingc/60) > starts:
+    #         starts = aved-int(pingc/60)
+    #         starts = int(starts)
+    #     if aved+int(pingc/40) < ends:
+    #         ends = aved+int(pingc/40)
+    #         ends = int(ends)
+    #     print "aved, start, end", aved, starts, ends
+    #     outsw0 = outw0[starts:(ends+1)]
+    #     outsw1 = outw1[starts:(ends+1)]
+    #     outsw2 = outw2[starts:(ends+1)]
+    #     outsw = outw[starts:(ends+1)]
+    #     est_phase0, est_phase1, est_phase2 = sin_fit(guess_freq, outsw0, outsw1, outsw2)
+    #     resultp0 = clean_phase(est_phase0)
+    #     resultp1 = clean_phase(est_phase1)
+    #     resultp2 = clean_phase(est_phase2)
+    #     cycle = 1/float(fs)
+    #     dphase_x = phase_diff(resultp1, resultp0)
+    #     dphase_y = phase_diff(resultp2, resultp0)
+    print "phase", est_phase0, est_phase1, est_phase2
+
 
     # if order[0] == 0:
     #     dphase_x = phase_diff(resultp1, resultp0)
@@ -269,14 +300,14 @@ if __name__ == "__main__":
             writer.writerow([round(out0[k], 4), round(out1[k], 4), round(out2[k], 4), round(out[k], 4)])
     #plt.plot(out)
     plt.figure()
+    plt.plot(outw0)
+    plt.plot(outw1)
+    plt.plot(outw2)
+
+    plt.figure()
     plt.plot(outsw0)
     plt.plot(outsw1)
     plt.plot(outsw2)
-
-    # plt.figure()
-    # plt.plot(outw0)
-    # plt.plot(outw1)
-    # plt.plot(outw2)
 
     # plt.figure()
     # plt.plot(out)

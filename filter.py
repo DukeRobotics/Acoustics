@@ -91,9 +91,10 @@ def sin_fit(guess_freq, outsw0, outsw1, outsw2):
     optimize_func2 = lambda x: np.absolute(x[0])*t*np.sin(est_freq0*t+x[1]) - outsw2
     est_std1, est_phase1 = leastsq(optimize_func1, [guess_std, guess_phase])[0]
     est_std2, est_phase2 = leastsq(optimize_func2, [guess_std, guess_phase])[0]
-    # data_fit0 = np.absolute(est_std0)*t*np.sin(est_freq0*t+est_phase0)
-    # data_fit1 = np.absolute(est_std1)*t*np.sin(est_freq0*t+est_phase1)
-    # data_fit2 = np.absolute(est_std2)*t*np.sin(est_freq0*t+est_phase2)
+    data_fit0 = np.absolute(est_std0)*t*np.sin(est_freq0*t+est_phase0)
+    data_fit1 = np.absolute(est_std1)*t*np.sin(est_freq0*t+est_phase1)
+    data_fit2 = np.absolute(est_std2)*t*np.sin(est_freq0*t+est_phase2)
+
     return est_phase0, est_phase1, est_phase2
 
 if __name__ == "__main__":
@@ -118,9 +119,7 @@ if __name__ == "__main__":
             data2.append(float(ds[0]))
         except:
             continue
-    data0 = data0[13000:]
-    data1 = data1[13000:]
-    data2 = data2[13000:]
+
 
     # with open("data.csv", 'rb') as filec:
     #     reader = csv.reader(filec)
@@ -139,6 +138,10 @@ if __name__ == "__main__":
         out2 = cheby2_bandpass_filter(data2, freq-bandpassw/2, freq+bandpassw/2, fs)
     except Exception as e:
         print(e)
+
+    out0 = out0[13000:]
+    out1 = out1[13000:]
+    out2 = out2[13000:]
 
     #find window with moving_average
     out = out0+out1+out2
@@ -165,8 +168,8 @@ if __name__ == "__main__":
     aved = moving_average_double(np.absolute(outw))
     starts = 0
     ends = len(outw)-1
-    if aved-int(pingc/60) > starts:
-        starts = aved-int(pingc/60)
+    if aved-int(pingc/50) > starts:
+        starts = aved-int(pingc/50)
         starts = int(starts)
     if aved+int(pingc/20) < ends:
         ends = aved+int(pingc/20)
@@ -306,10 +309,15 @@ if __name__ == "__main__":
         for k in range(len(out)):
             writer.writerow([round(out0[k], 4), round(out1[k], 4), round(out2[k], 4), round(out[k], 4)])
     #plt.plot(out)
-    # plt.figure()
-    # plt.plot(outw0)
-    # plt.plot(outw1)
-    # plt.plot(outw2)
+    plt.figure()
+    plt.plot(outw0)
+    plt.plot(outw1)
+    plt.plot(outw2)
+
+    plt.figure()
+    plt.plot(out0)
+    plt.plot(out1)
+    plt.plot(out2)
 
     plt.figure()
     plt.plot(outsw0)

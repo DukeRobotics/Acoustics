@@ -228,12 +228,19 @@ if __name__ == "__main__":
     #     print "resultf", resultf
     #     sys.exit()
 
-    resultp0 = clean_phase(est_phase0) - np.pi*2/3
+    resultp0 = clean_phase(est_phase0)
     resultp1 = clean_phase(est_phase1)
-    resultp2 = clean_phase(est_phase2) + np.pi/2
-    cycle = 1/float(fs)
+    resultp2 = clean_phase(est_phase2)
     dphase_x = phase_diff(resultp1, resultp0)
     dphase_y = phase_diff(resultp2, resultp0)
+    # print "dphase_x, dphase_y", dphase_x, dphase_y
+    #
+    # resultp0 = clean_phase(est_phase0) - np.pi*2/3
+    # resultp1 = clean_phase(est_phase1)
+    # resultp2 = clean_phase(est_phase2) + np.pi/2
+    cycle = 1/float(fs)
+    # dphase_x = phase_diff(resultp1, resultp0)
+    # dphase_y = phase_diff(resultp2, resultp0)
     # if np.absolute(dphase_x) < 0.5 or np.absolute(dphase_x) > (np.pi-0.5) or np.absolute(dphase_y) < 0.5 or np.absolute(dphase_y) > (np.pi-0.5):
     #     starts = 0
     #     ends = len(outw)-1
@@ -299,10 +306,10 @@ if __name__ == "__main__":
         for k in range(len(out)):
             writer.writerow([round(out0[k], 4), round(out1[k], 4), round(out2[k], 4), round(out[k], 4)])
     #plt.plot(out)
-    plt.figure()
-    plt.plot(outw0)
-    plt.plot(outw1)
-    plt.plot(outw2)
+    # plt.figure()
+    # plt.plot(outw0)
+    # plt.plot(outw1)
+    # plt.plot(outw2)
 
     plt.figure()
     plt.plot(outsw0)

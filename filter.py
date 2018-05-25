@@ -7,19 +7,25 @@ import sys
 import math
 import subprocess
 
+#sampling frequency
 fs = 130000
-
+#sampling time period
 ts = 3
+#number of sample taken during the ping
 pingc = fs*0.004
+#speed of sound in water
 vsound = 1481
+#nipple distance between hydrophone
 spac = 0.01275
+#time for one sample
 cycle = 1/float(fs)
+#window for bandpass
 bandpassw = 500
+#when using fft, the allowed window for frequency
 fftfreqw = 500
 
 
-#running average get time section, fft get phase comparison, multichannels
-
+#get bandpass filter parameter
 def cheby2_bandpass(lowcut, highcut, fs, order=5):
     nyq = 0.5 * fs
     low = lowcut / nyq
@@ -27,11 +33,13 @@ def cheby2_bandpass(lowcut, highcut, fs, order=5):
     b, a = cheby2(order, 5, [low, high], btype='bandpass')
     return b, a
 
+#filter the data with bandpass
 def cheby2_bandpass_filter(data, lowcut, highcut, fs, order=5):
     b, a = cheby2_bandpass(lowcut, highcut, fs, order=order)
     y = lfilter(b, a, data)
     return y
 
+#computing the phase difference of two wave that is within half a cycle
 def phase_diff(p1, p2):
     # p2 should be channel 0
     diff = p1 - p2
@@ -41,6 +49,7 @@ def phase_diff(p1, p2):
         diff = diff + 2*np.pi
     return diff
 
+#clean up the phase so that they are in between -2pi and 2pi
 def clean_phase(phase):
     if phase < -2*np.pi:
         return np.remainder(phase, -2*np.pi)
@@ -48,6 +57,9 @@ def clean_phase(phase):
         return np.remainder(phase, 2*np.pi)
     return phase
 
+#not actually double... BUT detect when the moving average value is 5 times larger than the first one
+#use to detect the very first sample of the ping
+#after a rough ping window is determined
 def moving_average_double(a, n = pingc/10):
     weights = np.repeat(1.0, n)/n
     alist = np.convolve(a, weights, 'valid')
@@ -58,7 +70,8 @@ def moving_average_double(a, n = pingc/10):
     	    return int(k+n)
     return 0
 
-
+#find the max moving average of the filtered data
+#try to determine a rough ping window
 def moving_average_max(a, n = pingc) :
     weights = np.repeat(1.0, n)/n
     alist = np.convolve(a, weights, 'valid')
@@ -80,6 +93,9 @@ def moving_average_max(a, n = pingc) :
     	    maxi = k
     return maxi
 
+#fit kt(sin(At+B)) into the samples to get the phase
+#use the frequency(A) fit from the first wave for other waves
+#this is after twice moving average and operate on the very first part of the ping
 def sin_fit(guess_freq, outsw0, outsw1, outsw2):
     guess_std = 1
     guess_phase = 0
@@ -97,12 +113,14 @@ def sin_fit(guess_freq, outsw0, outsw1, outsw2):
 
     return est_phase0, est_phase1, est_phase2
 
+
 if __name__ == "__main__":
     #sampling
     data0 = []
     data1 = []
     data2 = []
     freq = int(sys.argv[1])
+    #calling samping program, get result from stdin stdout
     process = subprocess.Popen(["/home/estellehe/Desktop/Linux_Drivers/USB/mcc-libusb/sampling", str(ts), str(fs)], stdout = subprocess.PIPE)
     stddata, stderror = process.communicate()
     if "fail" in stddata:
@@ -143,7 +161,7 @@ if __name__ == "__main__":
     out1 = out1[13000:]
     out2 = out2[13000:]
 
-    #find window with moving_average
+    #find rough ping window with moving_average_max
     out = out0+out1+out2
     outsq = np.absolute(out)
     avem = moving_average_max(outsq)
@@ -165,6 +183,7 @@ if __name__ == "__main__":
     mag = np.sum(np.absolute(out))
     print "magnitude", mag
 
+    #use moving_average_double to locate the very first part
     aved = moving_average_double(np.absolute(outw))
     starts = 0
     ends = len(outw)-1
@@ -180,6 +199,7 @@ if __name__ == "__main__":
     outsw2 = outw2[starts:(ends+1)]
     outsw = outw[starts:(ends+1)]
 
+    #sin fit the wave to get phase
     guess_freq = 2*np.pi/fs*freq
 
     est_phase0, est_phase1, est_phase2 = sin_fit(guess_freq, outsw0, outsw1, outsw2)
@@ -231,6 +251,7 @@ if __name__ == "__main__":
     #     print "resultf", resultf
     #     sys.exit()
 
+    #get phase difference
     resultp0 = clean_phase(est_phase0)
     resultp1 = clean_phase(est_phase1)
     resultp2 = clean_phase(est_phase2)

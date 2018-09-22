@@ -162,8 +162,10 @@ if __name__ == "__main__":
     out2 = out2[13000:]
 
     #find rough ping window with moving_average_max
-    out = out0+out1+out2
-    outsq = np.absolute(out)
+    outsq0 = np.absolute(out0)
+    outsq1 = np.absolute(out1)
+    outsq2 = np.absolute(out2)
+    outsq = outsq0+outsq1+outsq2
     avem = moving_average_max(outsq)
     start = 0
     end = len(out) - 1
@@ -204,106 +206,16 @@ if __name__ == "__main__":
 
     est_phase0, est_phase1, est_phase2 = sin_fit(guess_freq, outsw0, outsw1, outsw2)
 
-
-
-    #todo: the order of wave hitting hydrophone
-    # max0 = moving_average(outw0, pingc)
-    # max1 = moving_average(outw1, pingc)
-    # max2 = moving_average(outw2, pingc)
-    # order = [np.argmin([max0, max1, max2]), np.argmax([max0, max1, max2])]
-    # order = [1, 2]
-
-    # #fft
-    # fft0 = np.fft.fft(outsw0)
-    # ffta0 = np.absolute(fft0)
-    # fft1 = np.fft.fft(outsw1)
-    # ffta1 = np.absolute(fft1)
-    # fft2 = np.fft.fft(outsw2)
-    # ffta2 = np.absolute(fft2)
-    # fft = np.fft.fft(outsw)
-    # ffta = np.absolute(fft)
-    # #result = 0
-    # result = 1000000
-    # resultc = 0
-    # resultf = 0
-    # resulti = 0
-    #
-    # #find max
-    # timew = (ends-starts+1)/float(fs)
-    # print timew
-    # for i in range(int(len(ffta)/2)):
-    #     f = i/timew;
-    #     if ffta[i] > result:
-    #         resultf = f
-    #         resulti = i
-    #         result = ffta[i]
-	#     resultc = i
-    # for i in range(int(len(ffta)/2)):
-    #     f = i/timew
-    #     if np.absolute(f-freq) < result:
-    #         resultf = f
-    #         resulti = i
-    #         result = np.absolute(f-freq)
-	#     resultc = i
-    #     #print fft[i], ffta[i], f
-    # if np.absolute(resultf-freq)>fftfreqw:
-    #     print "fft output wrong max magnitude for freq, bad data"
-    #     print "resultf", resultf
-    #     sys.exit()
-
     #get phase difference
     resultp0 = clean_phase(est_phase0)
     resultp1 = clean_phase(est_phase1)
     resultp2 = clean_phase(est_phase2)
     dphase_x = phase_diff(resultp1, resultp0)
     dphase_y = phase_diff(resultp2, resultp0)
-    # print "dphase_x, dphase_y", dphase_x, dphase_y
-    #
-    # resultp0 = clean_phase(est_phase0) - np.pi*2/3
-    # resultp1 = clean_phase(est_phase1)
-    # resultp2 = clean_phase(est_phase2) + np.pi/2
+
     cycle = 1/float(fs)
-    # dphase_x = phase_diff(resultp1, resultp0)
-    # dphase_y = phase_diff(resultp2, resultp0)
-    # if np.absolute(dphase_x) < 0.5 or np.absolute(dphase_x) > (np.pi-0.5) or np.absolute(dphase_y) < 0.5 or np.absolute(dphase_y) > (np.pi-0.5):
-    #     starts = 0
-    #     ends = len(outw)-1
-    #     if aved-int(pingc/60) > starts:
-    #         starts = aved-int(pingc/60)
-    #         starts = int(starts)
-    #     if aved+int(pingc/40) < ends:
-    #         ends = aved+int(pingc/40)
-    #         ends = int(ends)
-    #     print "aved, start, end", aved, starts, ends
-    #     outsw0 = outw0[starts:(ends+1)]
-    #     outsw1 = outw1[starts:(ends+1)]
-    #     outsw2 = outw2[starts:(ends+1)]
-    #     outsw = outw[starts:(ends+1)]
-    #     est_phase0, est_phase1, est_phase2 = sin_fit(guess_freq, outsw0, outsw1, outsw2)
-    #     resultp0 = clean_phase(est_phase0)
-    #     resultp1 = clean_phase(est_phase1)
-    #     resultp2 = clean_phase(est_phase2)
-    #     cycle = 1/float(fs)
-    #     dphase_x = phase_diff(resultp1, resultp0)
-    #     dphase_y = phase_diff(resultp2, resultp0)
+
     print "phase", est_phase0, est_phase1, est_phase2
-
-
-    # if order[0] == 0:
-    #     dphase_x = phase_diff(resultp1, resultp0)
-    #     dphase_y = phase_diff(resultp2, resultp0)
-    # elif order[1] == 0:
-    #     dphase_x = -phase_diff(resultp0, resultp1) #should be phase(0) - phase(1)
-    #     dphase_y = -phase_diff(resultp0, resultp2) #should be phase(0) - phase(2)
-    # elif order[0] == 1:
-    #     dphase_x = -phase_diff(resultp0, resultp1)
-    #     dphase_y = phase_diff(resultp2, resultp0)
-    # else:
-    #     dphase_x = phase_diff(resultp1, resultp0)
-    #     dphase_y = -phase_diff(resultp0, resultp2)
-    # dphase_x = abs(resultp1 - resultp0) #01 as x direction
-    # dphase_y = abs(resultp2 - resultp0) #02 as y direction
-    #timediff = phase/(2pi*freq)
 
     #the nipple distance need to be half wavelength of the target frequency
     #since we can only get phase diff within one cycle, and half cycle gives us the order of channel
@@ -329,7 +241,6 @@ if __name__ == "__main__":
         writer = csv.writer(write)
         for k in range(len(out)):
             writer.writerow([round(out0[k], 4), round(out1[k], 4), round(out2[k], 4), round(out[k], 4)])
-    #plt.plot(out)
     plt.figure()
     plt.plot(outw0)
     plt.plot(outw1)
@@ -345,10 +256,4 @@ if __name__ == "__main__":
     plt.plot(outsw1)
     plt.plot(outsw2)
 
-    # plt.figure()
-    # plt.plot(out)
     plt.show()
-    # print len(data)
-    #print out
-    # subprocess.call(["rm", "testcsv"])
-    # subprocess.call(["gcc", "-o", "testcsv", "testcsv.c", "-lfftw3", "-lm"])

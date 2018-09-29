@@ -64,11 +64,26 @@ def moving_average_double(a, n = pingc/10):
     weights = np.repeat(1.0, n)/n
     alist = np.convolve(a, weights, 'valid')
     lasta = alist[0]
+    lastd = 0
+    for k in range(len(alist)):
+    	ave = alist[k]
+        currentd = ave-lasta
+        if currentd > lastd:
+            if currentd > lastd*2 and lastd != 0:
+                return int(k+n)
+            lastd = currentd
+        lasta = ave
+    return 0
+    """
+    weights = np.repeat(1.0, n)/n
+    alist = np.convolve(a, weights, 'valid')
+    lasta = alist[0]
     for k in range(len(alist)):
     	ave = alist[k]
     	if ave > lasta*5:
     	    return int(k+n)
     return 0
+    """
 
 #find the max moving average of the filtered data
 #try to determine a rough ping window
@@ -113,6 +128,27 @@ def sin_fit(guess_freq, outsw0, outsw1, outsw2):
 
     return est_phase0, est_phase1, est_phase2
 
+def find_first_window(out, avem):
+    start = 0
+    end = len(out) - 1
+    if avem-int(pingc*6) > start:
+        start = avem-int(pingc*6)
+        start = int(start)
+    if avem+int(pingc) < end:
+        end = avem+int(pingc)
+        end = int(end)
+    return start, end
+
+def find_second_window(outw, aved):
+    starts = 0
+    ends = len(outw)-1
+    if aved-int(pingc/50) > starts:
+        starts = aved-int(pingc/50)
+        starts = int(starts)
+    if aved+int(pingc/20) < ends:
+        ends = aved+int(pingc/20)
+        ends = int(ends)
+    return starts, ends
 
 if __name__ == "__main__":
     #sampling
@@ -160,47 +196,43 @@ if __name__ == "__main__":
     out0 = out0[13000:]
     out1 = out1[13000:]
     out2 = out2[13000:]
+    out = out0 + out1 + out2
 
     #find rough ping window with moving_average_max
     outsq0 = np.absolute(out0)
     outsq1 = np.absolute(out1)
     outsq2 = np.absolute(out2)
     outsq = outsq0+outsq1+outsq2
+
     avem = moving_average_max(outsq)
-    start = 0
-    end = len(out) - 1
-    if avem-int(pingc*6) > start:
-        start = avem-int(pingc*6)
-        start = int(start)
-    if avem+int(pingc) < end:
-        end = avem+int(pingc)
-        end = int(end)
+
+    start, end = find_first_window(out, avem)
+
     print "avem, start, end", avem, start, end
     outw0 = out0[start:(end+1)]
     outw1 = out1[start:(end+1)]
     outw2 = out2[start:(end+1)]
     outw = out[start:(end+1)]
     #dataw = data[start:(end+1)]
-    time = np.linspace(start/fs, end/fs, end-start+1)
-    mag = np.sum(np.absolute(out))
-    print "magnitude", mag
+    # time = np.linspace(start/fs, end/fs, end-start+1)
+    # mag = np.sum(np.absolute(out))
+    # print "magnitude", mag
 
     #use moving_average_double to locate the very first part
     aved = moving_average_double(np.absolute(outw))
-    starts = 0
-    ends = len(outw)-1
-    if aved-int(pingc/50) > starts:
-        starts = aved-int(pingc/50)
-        starts = int(starts)
-    if aved+int(pingc/20) < ends:
-        ends = aved+int(pingc/20)
-        ends = int(ends)
+
+    starts, ends = find_second_window(outw, aved)
+
     print "aved, start, end", aved, starts, ends
     outsw0 = outw0[starts:(ends+1)]
     outsw1 = outw1[starts:(ends+1)]
     outsw2 = outw2[starts:(ends+1)]
     outsw = outw[starts:(ends+1)]
 
+
+
+
+"""
     #sin fit the wave to get phase
     guess_freq = 2*np.pi/fs*freq
 
@@ -257,3 +289,5 @@ if __name__ == "__main__":
     plt.plot(outsw2)
 
     plt.show()
+
+"""

@@ -1,7 +1,7 @@
 from __future__ import division
 from scipy.interpolate import interp1d
 from scipy.signal import correlate
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 import numpy as np
 import csv
 import math
@@ -170,9 +170,9 @@ if __name__ == "__main__":
     x_phase_diff = x_diff/(10*fs)*freq*2*math.pi
     y_phase_diff = y_diff/(10*fs)*freq*2*math.pi
 
-    # if abs(x_phase_diff) > dphase or abs(y_phase_diff) > dphase:
-    #     print "bad data"
-    #     exit()
+    if abs(x_phase_diff) > dphase or abs(y_phase_diff) > dphase:
+        print "bad data"
+        exit()
 
     kx = vsound * x_phase_diff/ (spac * 2 * math.pi * freq);
     ky = vsound * y_phase_diff/ (spac * 2 * math.pi * freq);
@@ -193,8 +193,8 @@ if __name__ == "__main__":
     print "heading:", heading
     print "elevation:", elevation
 
-    plt.figure()
-    plt.plot(data0_intp)
-    plt.plot(data1_intp)
-    plt.plot(data2_intp)
-    plt.show()
+    # plt.figure()
+    # plt.plot(data0_intp)
+    # plt.plot(data1_intp)
+    # plt.plot(data2_intp)
+    # plt.show()

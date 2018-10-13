@@ -1,8 +1,11 @@
+from __future__ import division
 from scipy.interpolate import interp1d
 from scipy.signal import correlate
 import matplotlib.pyplot as plt
 import numpy as np
 import csv
+import math
+import sys
 
 #sampling frequency
 fs = 130000
@@ -10,6 +13,14 @@ fs = 130000
 ts = 3
 #number of sample taken during the ping
 pingc = fs*0.004
+#target frequency
+freq = 40000
+#speed of sound in water
+vsound = 1481
+#nipple distance between hydrophone
+spac = 0.01275
+#allowed phase diff
+dphase = math.pi*2/(vsound/freq)*spac
 
 def find_first_window(out, avem):
     start = 0
@@ -25,26 +36,34 @@ def find_first_window(out, avem):
 def find_second_window(outw, aved):
     starts = 0
     ends = len(outw)-1
-    if aved-int(pingc/50) > starts:
-        starts = aved-int(pingc/50)
+    if aved-int(pingc/20) > starts:
+        starts = aved-int(pingc/20)
         starts = int(starts)
-    if aved+int(pingc/20) < ends:
-        ends = aved+int(pingc/20)
+    if aved+int(pingc/50) < ends:
+        ends = aved+int(pingc/50)
         ends = int(ends)
     return starts, ends
 
-def moving_average_double(a, n = pingc/10):
+# need to adjust pingc and threshold for different data set
+def moving_average_double(a, n = pingc/20):
     weights = np.repeat(1.0, n)/n
     alist = np.convolve(a, weights, 'valid')
     lasta = alist[0]
-    lastd = 0
+    counter = 0
     for k in range(len(alist)):
     	ave = alist[k]
-        currentd = ave-lasta
-        if currentd > lastd:
-            if currentd > lastd*2 and lastd != 0:
-                return int(k+n)
-            lastd = currentd
+        if ave > lasta:
+            counter += 1
+        if ave <= lasta:
+            counter = 0
+        if counter > 10:
+            return int(k+n)
+        # currentd = abs(ave-lasta)
+        # if currentd > lastd:
+        #     if currentd > lastd*threshold and lastd != 0:
+        #         return int(k+n)
+        #     lastd = currentd
+        # lasta = ave
         lasta = ave
     return 0
 
@@ -74,7 +93,7 @@ if __name__ == "__main__":
     data0 = []
     data1 = []
     data2 = []
-    filepath = "/Users/estellehe/Documents/Robo/Acoustic/filtered_data/data_0_130k_40k_1_filtered.csv"
+    filepath = sys.argv[1]
 
     with open(filepath, 'rb') as filec:
         reader = csv.reader(filec)
@@ -116,8 +135,6 @@ if __name__ == "__main__":
 
     starts, ends = find_second_window(outw, aved)
 
-    print aved, starts, ends
-
     # print "aved, start, end", aved, starts, ends
     outsw0 = outw0[starts:(ends+1)]
     outsw1 = outw1[starts:(ends+1)]
@@ -127,7 +144,7 @@ if __name__ == "__main__":
 
 
 
-
+    # 10 times sampling points, so 10 times sampling frequency
     time = np.linspace(0, len(outsw0)-1 ,len(outsw0)*10 - 9)
 
     data0f = interp1d(range(0, len(outsw0)), outsw0, kind = 'cubic')
@@ -142,10 +159,42 @@ if __name__ == "__main__":
     xcrr_y = correlate(data0_intp, data2_intp, mode = 'full')
 
     max_loc_x = np.argmax(xcrr_x)
+    # print xcrr_x[max_loc_x-9], xcrr_x[max_loc_x]
     max_loc_y = np.argmax(xcrr_y)
 
+    # x/y_actual_index - same_index, gives positive kx when heading = 0
+    x_diff = max_loc_x - len(data0_intp)
+    y_diff = max_loc_y - len(data0_intp)
+
+    # 10*fs from interpolation, change from dp difference to phase difference
+    x_phase_diff = x_diff/(10*fs)*freq*2*math.pi
+    y_phase_diff = y_diff/(10*fs)*freq*2*math.pi
+
+    # if abs(x_phase_diff) > dphase or abs(y_phase_diff) > dphase:
+    #     print "bad data"
+    #     exit()
+
+    kx = vsound * x_phase_diff/ (spac * 2 * math.pi * freq);
+    ky = vsound * y_phase_diff/ (spac * 2 * math.pi * freq);
+    kz2 = 1 - kx*kx - ky*ky
+
+    try:
+        heading = np.arctan2(ky, kx)/math.pi*180
+        elevation = math.acos(math.sqrt(kz2))/math.pi*180
+    except:
+        elevation = "Elevation out of range"
+
+    print "max_loc_x:", max_loc_x
+    print "max_loc_y:", max_loc_y
+    print "x_diff:", x_diff
+    print "y_diff:", y_diff
+    print "x_phase_diff:", x_phase_diff
+    print "y_phase_diff:", y_phase_diff
+    print "heading:", heading
+    print "elevation:", elevation
+
     plt.figure()
-    plt.plot(outsw0)
-    plt.plot(outsw1)
-    plt.plot(outsw2)
+    plt.plot(data0_intp)
+    plt.plot(data1_intp)
+    plt.plot(data2_intp)
     plt.show()

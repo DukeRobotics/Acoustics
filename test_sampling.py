@@ -67,7 +67,7 @@ if __name__ == "__main__":
 
     sample_count = 1
     filename = "_{}_130k_40k_{}.csv".format(angle, sample_count)
-    data_path = ""
+    data_path = "/home/estellehe/Desktop/Data/"
     while os.path.isfile(data_path+"data"+filename):
         sample_count += 1
         filename = "_{}_130k_40k_{}.csv".format(angle, sample_count)
@@ -86,5 +86,5 @@ if __name__ == "__main__":
 
     with open(data_path+"out"+filename, 'wb') as write:
         writer = csv.writer(write)
-        for k in range(len(out)):
+        for k in range(len(out0)):
             writer.writerow([round(out0[k], 4), round(out1[k], 4), round(out2[k], 4)])

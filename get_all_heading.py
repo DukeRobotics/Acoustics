@@ -3,7 +3,7 @@ import os
 
 
 if __name__ == "__main__":
-    root = "/Users/estellehe/Documents/Robo/Acoustic/data"
+    root = "/home/estellehe/Desktop/Data"
     for file in (os.listdir(root)):
         if not file.startswith("out"):
             continue

@@ -180,6 +180,8 @@ if __name__ == "__main__":
 
     try:
         heading = np.arctan2(ky, kx)/math.pi*180
+        if heading < 0:
+            heading = 360 + heading
         elevation = math.acos(math.sqrt(kz2))/math.pi*180
     except:
         elevation = "Elevation out of range"
@@ -193,6 +195,8 @@ if __name__ == "__main__":
     print "heading:", heading
     print "elevation:", elevation
 
+    ##### some observation, first and fourth quadrant has calculated angle smaller than actual angle
+    #### second and third quadrant has calculated angle larger than actual angle
     # plt.figure()
     # plt.plot(data0_intp)
     # plt.plot(data1_intp)

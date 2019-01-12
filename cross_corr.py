@@ -1,3 +1,5 @@
+##### THE LATEST WORKING CODE FOR CROSSCORRELATION SAMPLING #######
+
 from __future__ import division
 from scipy.interpolate import interp1d
 from scipy.signal import correlate

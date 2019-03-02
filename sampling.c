@@ -15,7 +15,7 @@
 #define TRUE 1
 
 
-//gcc -o sampling sampling.c
+// compile in makefile
 // sampling time(s) sampling_freq(Hz)
 
 int main (int argc, char **argv) {

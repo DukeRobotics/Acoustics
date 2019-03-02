@@ -52,9 +52,6 @@ int main (int argc, char **argv) {
 
 	ret = libusb_init(NULL);
 
-	fftw_complex *out;
-	double *in;
-	fftw_plan p;
 	int freqs = atoi(argv[2]);
 	int times = atof(argv[1]);
 	int count = times*freqs;

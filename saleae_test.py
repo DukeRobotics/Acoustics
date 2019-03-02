@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import saleae
 import csv
 import numpy as np
@@ -26,6 +27,17 @@ cycle = 1/float(fs)
 bandpassw = 500
 #when using fft, the allowed window for frequency
 fftfreqw = 500
+=======
+import csv
+import os
+from scipy.signal import cheby2, lfilter
+
+freq = 40000
+
+bandpassw = 500
+
+fs = 130000
+>>>>>>> 3ff278573f7b578abccdd6860c60e4601478148d
 
 
 #get bandpass filter parameter
@@ -43,6 +55,7 @@ def cheby2_bandpass_filter(data, lowcut, highcut, fs, order=5):
     return y
 
 
+<<<<<<< HEAD
 
 if __name__ == "__main__":
     try:
@@ -108,3 +121,31 @@ if __name__ == "__main__":
 #         writer = csv.writer(write)
 #         for k in range(len(out0)):
 #             writer.writerow([round(out0[k], 4), round(out1[k], 4), round(out2[k], 4)])
+=======
+if __name__ == "__main__":
+    #sampling
+    datapath = "/Users/estellehe/Documents/Robo/Acoustic/data/"
+    outpath = "/Users/estellehe/Documents/Robo/Acoustic/filtered_data/"
+    file = "data_40k_130k.csv"
+
+    data0 = []
+    out0 = []
+
+    with open(os.path.join(datapath, file), 'rb') as filec:
+        reader = csv.reader(filec)
+        for row in reader:
+            try:
+                data0.append(float(row[2]))
+            except:
+                continue
+
+    try:
+        out0 = cheby2_bandpass_filter(data0, freq-bandpassw/2, freq+bandpassw/2, fs)
+    except Exception as e:
+        print(e)
+
+    with open(os.path.join(outpath, file.replace(".csv", "_filtered.csv")), 'wb') as write:
+        writer = csv.writer(write)
+        for k in range(len(out0)):
+            writer.writerow([round(out0[k], 4)])
+>>>>>>> 3ff278573f7b578abccdd6860c60e4601478148d

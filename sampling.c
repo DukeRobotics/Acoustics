@@ -21,30 +21,32 @@
 int main (int argc, char **argv) {
 	libusb_device_handle *udev = NULL;
 
-	double voltage;
-	double frequency, duty_cycle;
-	float temperature;
+	//double voltage;
+	double frequency; // duty_cycle;
+	//float temperature;
 	float table_AIN[NGAINS_1608G][2];
-	float table_AO[NCHAN_AO_1608GX][2];
+	//float table_AO[NCHAN_AO_1608GX][2];
 	ScanList list[NCHAN_1608G];
 
-	int ch;
-	int i, j, m, k, nchan, repeats;
-	int nread;
+	//int ch;
+	int i, j, k, nchan;// repeats;
+	//int nread;
 	int nScans = 0;
-	uint8_t input;
-	int temp, ret;
-	uint8_t options;
-	char serial[9];
-	uint32_t period;
-	uint16_t version;
-	uint16_t status;
-	int usb1608GX_2AO = FALSE;
-	int flag;
-	int transferred;            // number of bytes transferred
-	uint16_t value, data;
+	//uint8_t input;
+	//int temp,
+	int ret;
+	//uint8_t options;
+	//char serial[9];
+	//uint32_t period;
+	//uint16_t version;
+	//uint16_t status;
+	//int usb1608GX_2AO = FALSE;
+	//int flag;
+	//int transferred;            // number of bytes transferred
+	//uint16_t value,
+	uint16_t data;
 	uint16_t *sdataIn;          // holds 16 bit unsigned analog input data
-	uint16_t sdataOut[512];     // holds 16 bit unsigned analog output data
+	//uint16_t sdataOut[512];     // holds 16 bit unsigned analog output data
 
 	uint8_t mode, gain, channel;
 
@@ -56,11 +58,11 @@ int main (int argc, char **argv) {
 	//int freq = 6000;
 	int times = atof(argv[1]);
 	int count = times*freqs;
-	int freqmin = 0;
-	int freqmax = 60000;
-	int result = 0;
-	int f;
-	int resultf = 0;
+	//int freqmin = 0;
+	//int freqmax = 60000;
+	//int result = 0;
+	//int f;
+	//int resultf = 0;
 
 	//FILE* fp;
 	//fp = fopen("/home/robot/Desktop/Acoustics/data.csv", "w+");
@@ -107,7 +109,7 @@ int main (int argc, char **argv) {
 
 	if ((sdataIn = malloc(2*nchan*nScans)) == NULL) {
 		perror("cannot allocate memory for sdataIn");
-		return;
+		return 0;
 	}
 
 	// in = (double*) malloc(sizeof(double) * count);
@@ -133,6 +135,7 @@ int main (int argc, char **argv) {
 		printf("\n");
 	}
 	free(sdataIn);
+	return 0;
 	//fclose(fp);
 
 	// fftw_execute(p); /* repeat as needed */

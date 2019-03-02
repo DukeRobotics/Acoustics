@@ -21,30 +21,15 @@
 int main (int argc, char **argv) {
 	libusb_device_handle *udev = NULL;
 
-	double voltage;
-	double frequency, duty_cycle;
-	float temperature;
+	double frequency;
 	float table_AIN[NGAINS_1608G][2];
-	float table_AO[NCHAN_AO_1608GX][2];
 	ScanList list[NCHAN_1608G];
 
-	int ch;
-	int i, j, m, k, nchan, repeats;
-	int nread;
+	int i, j, k, nchan;
 	int nScans = 0;
-	uint8_t input;
-	int temp, ret;
-	uint8_t options;
-	char serial[9];
-	uint32_t period;
-	uint16_t version;
-	uint16_t status;
-	int usb1608GX_2AO = FALSE;
-	int flag;
-	int transferred;            // number of bytes transferred
-	uint16_t value, data;
+	int ret;
+	uint16_t data;
 	uint16_t *sdataIn;          // holds 16 bit unsigned analog input data
-	uint16_t sdataOut[512];     // holds 16 bit unsigned analog output data
 
 	uint8_t mode, gain, channel;
 
@@ -55,12 +40,6 @@ int main (int argc, char **argv) {
 	int freqs = atoi(argv[2]);
 	int times = atof(argv[1]);
 	int count = times*freqs;
-	int freqmin = 0;
-	int freqmax = 60000;
-	int result = 0;
-	int f;
-	int resultf = 0;
-
 
 	if (ret < 0) {
 		perror("fail to initialize libsusb");
@@ -104,16 +83,15 @@ int main (int argc, char **argv) {
 
 	if ((sdataIn = malloc(2*nchan*nScans)) == NULL) {
 		perror("cannot allocate memory for sdataIn");
-		return;
+		return 0;
 	}
-
 
 // usbAInScanStart_USB1608G(device, nScans, trigger count keep 0, frequency, option keep 0x0);
 	usbAInScanStart_USB1608G(udev, nScans, 0, frequency, 0x0);
 	// usbAInScanRead_USB1608G(device, nScans, nchan, sdataIn buffer, timeout in millisecond (0 if continuous), option keep 0);
 	ret = usbAInScanRead_USB1608G(udev, nScans, nchan, sdataIn, times*1000+1000, 0);
 	for (i = 0; i < nScans; i++) {
-
+		//printf("%6d", i);
 		for (j = 0; j < nchan; j++) {
 			gain = list[j].range;
 			k = i*nchan + j;
@@ -125,5 +103,6 @@ int main (int argc, char **argv) {
 		printf("\n");
 	}
 	free(sdataIn);
+	return 0;
 
 }

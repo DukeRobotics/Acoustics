@@ -120,6 +120,9 @@ int main (int argc, char **argv) {
 	usbAInScanStart_USB1608G(udev, nScans, 0, frequency, 0x0);
 	// usbAInScanRead_USB1608G(device, nScans, nchan, sdataIn buffer, timeout in millisecond (0 if continuous), option keep 0);
 	ret = usbAInScanRead_USB1608G(udev, nScans, nchan, sdataIn, times*1000+1000, 0);
+	if (ret != 2*nchan*nScans) {
+		fprintf(stderr, "libusb error code: %d\n", ret);
+	}
 	for (i = 0; i < nScans; i++) {
 		//printf("%6d", i);
 		for (j = 0; j < nchan; j++) {

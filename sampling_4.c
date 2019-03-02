@@ -15,8 +15,8 @@
 #define TRUE 1
 
 
-//gcc -o sampling sampling.c
-// sampling time(s) sampling_freq(Hz)
+//gcc -o sampling_4 sampling_4.c
+// sampling_4 time(s) sampling_freq(Hz)
 
 int main (int argc, char **argv) {
 	libusb_device_handle *udev = NULL;
@@ -56,7 +56,6 @@ int main (int argc, char **argv) {
 	double *in;
 	fftw_plan p;
 	int freqs = atoi(argv[2]);
-	//int freq = 6000;
 	int times = atof(argv[1]);
 	int count = times*freqs;
 	int freqmin = 0;
@@ -65,8 +64,6 @@ int main (int argc, char **argv) {
 	int f;
 	int resultf = 0;
 
-	//FILE* fp;
-	//fp = fopen("/home/robot/Desktop/Acoustics/data.csv", "w+");
 
 	if (ret < 0) {
 		perror("fail to initialize libsusb");
@@ -93,7 +90,7 @@ int main (int argc, char **argv) {
 	usbAInScanClearFIFO_USB1608G(udev);
 	mode = DIFFERENTIAL;
 	gain = BP_10V;
-	nchan = 3;
+	nchan = 4;
 	nScans = count;
 	frequency = freqs;
 
@@ -113,16 +110,13 @@ int main (int argc, char **argv) {
 		return;
 	}
 
-	// in = (double*) malloc(sizeof(double) * count);
-	// out = (fftw_complex*) fftw_malloc(sizeof(fftw_complex) * count);
-	// p = fftw_plan_dft_r2c_1d(count, in, out, FFTW_ESTIMATE);
 
 // usbAInScanStart_USB1608G(device, nScans, trigger count keep 0, frequency, option keep 0x0);
 	usbAInScanStart_USB1608G(udev, nScans, 0, frequency, 0x0);
 	// usbAInScanRead_USB1608G(device, nScans, nchan, sdataIn buffer, timeout in millisecond (0 if continuous), option keep 0);
 	ret = usbAInScanRead_USB1608G(udev, nScans, nchan, sdataIn, times*1000+1000, 0);
 	for (i = 0; i < nScans; i++) {
-		//printf("%6d", i);
+
 		for (j = 0; j < nchan; j++) {
 			gain = list[j].range;
 			k = i*nchan + j;
@@ -130,27 +124,9 @@ int main (int argc, char **argv) {
 
 			printf("%8.4lf", volts_USB1608G(gain, data));
 			printf(",");
-			//fprintf(fp, "%8.4lf\n", volts_USB1608G(gain, data));
-			// in[i] = volts_USB1608G(gain, data);
 		}
 		printf("\n");
 	}
 	free(sdataIn);
-	//fclose(fp);
-
-	// fftw_execute(p); /* repeat as needed */
-	// fftw_destroy_plan(p);
-  //
-	// for (i = (freqmin*times); i <= (freqmax*times); i++) {
-  //   f = i/times;
-  //   if (abs(out[i][0]*out[i][0]+out[i][1]*out[i][1]) > result) {
-  //     resultf = f;
-  //     result = abs(out[i][0]*out[i][0]+out[i][1]*out[i][1]);
-  //   }
-  //   printf("%d %f %f\n", f, out[i][0], out[i][1]);
-  // }
-  // printf("max is %d Hz\n", resultf);
-  //
-	// free(in); fftw_free(out);
 
 }

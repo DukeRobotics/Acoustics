@@ -1,6 +1,7 @@
 import saleae
 import subprocess
 import time
+import sys
 
 # 2 = 1250 kS/s, 3 = 625 kS/s, 4 = 125 kS/s
 sampling_rate = 3
@@ -30,10 +31,10 @@ if __name__ == "__main__":
 
     # change to a series of csv
     try:
-        file = open("saleae_data.csv", 'r')
+        file = open(sys.argv[1], 'r')
     except IOError:
-        file = open("saleae_data.csv", 'w')
+        file = open(sys.argv[1], 'w')
 
     #todo: add a while loop to wait till process is finished and then export data
     if s.is_processing_complete():
-        s.export_data2("/home/estellehe/Desktop/Acoustics/saleae_data.csv", analog_channels=[0, 1, 2, 3])
+        s.export_data2(sys.argv[1], analog_channels=[0, 1, 2, 3])

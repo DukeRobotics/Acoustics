@@ -9,7 +9,7 @@ sampling_rate = 3
 fs = 625000
 pingc = pingc = fs*0.004
 
-output_path = "/home/estellehe/Desktop/output/"
+output_path = "/home/robot/Documents/output/"
 
 def moving_average_max(a, n = pingc) :
     weights = np.repeat(1.0, n)/n
@@ -27,7 +27,7 @@ if __name__ == "__main__":
     try:
         s = saleae.Saleae()
     except:
-        subprocess.Popen(["/home/estellehe/Desktop/Logic/Logic"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.Popen(["/home/robobt/Logic/Logic"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         time.sleep(15)
         s = saleae.Saleae()
         print("saleae software down, open saleae software before next script run")

@@ -2,12 +2,28 @@ import saleae
 import subprocess
 import time
 import sys
+import os.path
 
 # 2 = 1250 kS/s, 3 = 625 kS/s, 4 = 125 kS/s
 sampling_rate = 3
+fs = 625000
+pingc = pingc = fs*0.004
+
+output_path = "/home/estellehe/Desktop/output/"
+
+def moving_average_max(a, n = pingc) :
+    weights = np.repeat(1.0, n)/n
+    alist = np.convolve(a, weights, 'valid')
+    maxa = 0
+    maxi = 0
+    for k in range(len(alist)):
+    	ave = alist[k]
+    	if ave > maxa:
+    	    maxa = ave
+    	    maxi = k
+    return maxi
 
 if __name__ == "__main__":
-
     try:
         s = saleae.Saleae()
     except:
@@ -22,19 +38,44 @@ if __name__ == "__main__":
     try:
         if s.get_active_device().active:
             s.set_active_channels([], [0, 1, 2, 3])
-            s.set_capture_seconds(1)
+            s.set_capture_seconds(3)
             s.set_sample_rate(s.get_all_sample_rates()[sampling_rate])
     except:
         exit()
 
+    # try:
+    #     file = open(sys.argv[1], 'r')
+    # except IOError:
+    #     file = open(sys.argv[1], 'w')
+
     s.capture_start_and_wait_until_finished()
+    s.export_data2(output_path+"output1/"+sys.argv[1], analog_channels=[0, 1, 2, 3])
+
+    time.sleep(10)
+
+    s.capture_start_and_wait_until_finished()
+    s.export_data2(output_path+"output2/"+sys.argv[1], analog_channels=[0, 1, 2, 3])
+
+    time.sleep(10)
+
+    s.capture_start_and_wait_until_finished()
+    s.export_data2(output_path+"output3/"+sys.argv[1], analog_channels=[0, 1, 2, 3])
+
+    # s.capture_start_and_wait_until_finished()
+    # s.export_data2(sys.argv[1], analog_channels=[0, 1, 2, 3])
+    # count +=1
+    # print(count)
+    # time.sleep(5)
+    # s.set_capture_seconds(3)
+
+        # exit()
 
     # change to a series of csv
-    try:
-        file = open(sys.argv[1], 'r')
-    except IOError:
-        file = open(sys.argv[1], 'w')
+    # try:
+    #     file = open(sys.argv[1], 'r')
+    # except IOError:
+    #     file = open(sys.argv[1], 'w')
 
     #todo: add a while loop to wait till process is finished and then export data
-    if s.is_processing_complete():
-        s.export_data2(sys.argv[1], analog_channels=[0, 1, 2, 3])
+    # if s.is_processing_complete():
+    #     s.export_data2(sys.argv[1], analog_channels=[0, 1, 2, 3])

@@ -47,14 +47,17 @@ if __name__ == "__main__":
     #     file = open(sys.argv[1], 'r')
     # except IOError:
     #     file = open(sys.argv[1], 'w')
-
-    while(fn = input("filename: x y z version").split(' ')):
+    fn = False
+    fn = input("filename: x y z version: ")
+    while(fn):
+        fn = False
         s.capture_start_and_wait_until_finished()
-        file_name = "625k_40k_"+fn[0]+"_"+fn[1]+"_"+fn[2]+"("+fn[3]").csv"
+        file_name = "625k_40k_"+fn[0]+"_"+fn[1]+"_"+fn[2]+"("+fn[3]+").csv"
         s.export_data2(output_path+"output1/", analog_channels=[0, 1, 2, 3])
 
         time.sleep(10)
         print("finish sampling")
+        fn = input("filename: x y z version")
 
     # s.capture_start_and_wait_until_finished()
     # s.export_data2(output_path+"output2/"+sys.argv[1], analog_channels=[0, 1, 2, 3])

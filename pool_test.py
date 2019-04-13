@@ -5,7 +5,7 @@ import pty
 
 if __name__ == "__main__":
     #channel 1 is left bottom corner
-    output_path = "/home/estellehe/Desktop/output/"
+    output_path = "/home/robot/Documents/output/"
 
     freq = "40"
     x = sys.argv[1]
@@ -18,7 +18,7 @@ if __name__ == "__main__":
         file_name = file_name.replace(".csv", "(2).csv")
 
     out_r, out_w = pty.openpty()
-    process = subprocess.Popen(["python3", "/home/estellehe/Desktop/Acoustics/saleae_sampling.py", file_name], stdout = out_w)
+    process = subprocess.Popen(["python3", "/home/robot/Documents/Acoustics/saleae_sampling.py", file_name], stdout = out_w)
     os.close(out_w) # if we do not write to process, close this.
     while True:
         try:

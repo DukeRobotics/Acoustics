@@ -9,7 +9,7 @@ sampling_rate = 3
 fs = 625000
 pingc = pingc = fs*0.004
 
-output_path = "/home/estellehe/Desktop/output/"
+output_path = "/home/robot/Documents/output/"
 
 def moving_average_max(a, n = pingc) :
     weights = np.repeat(1.0, n)/n
@@ -27,7 +27,7 @@ if __name__ == "__main__":
     try:
         s = saleae.Saleae()
     except:
-        subprocess.Popen(["/home/estellehe/Desktop/Logic/Logic"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.Popen(["/home/robot/Logic/Logic"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         time.sleep(15)
         s = saleae.Saleae()
         print("saleae software down, open saleae software before next script run")
@@ -48,18 +48,21 @@ if __name__ == "__main__":
     # except IOError:
     #     file = open(sys.argv[1], 'w')
 
-    s.capture_start_and_wait_until_finished()
-    s.export_data2(output_path+"output1/"+sys.argv[1], analog_channels=[0, 1, 2, 3])
+    while(fn = input("filename: x y z version").split(' ')):
+        s.capture_start_and_wait_until_finished()
+        file_name = "625k_40k_"+fn[0]+"_"+fn[1]+"_"+fn[2]+"("+fn[3]").csv"
+        s.export_data2(output_path+"output1/", analog_channels=[0, 1, 2, 3])
 
-    time.sleep(10)
+        time.sleep(10)
+        print("finish sampling")
 
-    s.capture_start_and_wait_until_finished()
-    s.export_data2(output_path+"output2/"+sys.argv[1], analog_channels=[0, 1, 2, 3])
-
-    time.sleep(10)
-
-    s.capture_start_and_wait_until_finished()
-    s.export_data2(output_path+"output3/"+sys.argv[1], analog_channels=[0, 1, 2, 3])
+    # s.capture_start_and_wait_until_finished()
+    # s.export_data2(output_path+"output2/"+sys.argv[1], analog_channels=[0, 1, 2, 3])
+    #
+    # time.sleep(10)
+    #
+    # s.capture_start_and_wait_until_finished()
+    # s.export_data2(output_path+"output3/"+sys.argv[1], analog_channels=[0, 1, 2, 3])
 
     # s.capture_start_and_wait_until_finished()
     # s.export_data2(sys.argv[1], analog_channels=[0, 1, 2, 3])
@@ -69,13 +72,3 @@ if __name__ == "__main__":
     # s.set_capture_seconds(3)
 
         # exit()
-
-    # change to a series of csv
-    # try:
-    #     file = open(sys.argv[1], 'r')
-    # except IOError:
-    #     file = open(sys.argv[1], 'w')
-
-    #todo: add a while loop to wait till process is finished and then export data
-    # if s.is_processing_complete():
-    #     s.export_data2(sys.argv[1], analog_channels=[0, 1, 2, 3])

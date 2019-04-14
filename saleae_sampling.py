@@ -27,7 +27,7 @@ if __name__ == "__main__":
     try:
         s = saleae.Saleae()
     except:
-        subprocess.Popen(["/home/estellehe/Desktop/Logic/Logic"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.Popen(["/home/estellehe/Desktop/Logic/Logic -socket"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         time.sleep(15)
         s = saleae.Saleae()
         print("saleae software down, open saleae software before next script run")

@@ -87,10 +87,10 @@ if __name__ == "__main__":
 
         # import data from csv
         df = pandas.read_csv(os.path.join(output_dir, "3s_"+str(t_3s).replace('.', '_')+".csv"), skiprows=[1], skipinitialspace=True)
-        data1 = df["Channel 0"].tolist()[1:]
-        data2 = df["Channel 1"].tolist()[1:]
-        data3 = df["Channel 2"].tolist()[1:]
-        data4 = df["Channel 3"].tolist()[1:]
+        data1 = df["Channel 0"].tolist()
+        data2 = df["Channel 1"].tolist()
+        data3 = df["Channel 2"].tolist()
+        data4 = df["Channel 3"].tolist()
         print("import length "+str(len(data1)))
 
         #bandpass
@@ -143,10 +143,10 @@ if __name__ == "__main__":
 
         # import data from csv
         df = pandas.read_csv(os.path.join(output_dir, "1s_"+str(t_1s_1).replace('.', '_')+".csv"), skiprows=[1], skipinitialspace=True)
-        data1 = df["Channel 0"].tolist()[1:]
-        data2 = df["Channel 1"].tolist()[1:]
-        data3 = df["Channel 2"].tolist()[1:]
-        data4 = df["Channel 3"].tolist()[1:]
+        data1 = df["Channel 0"].tolist()
+        data2 = df["Channel 1"].tolist()
+        data3 = df["Channel 2"].tolist()
+        data4 = df["Channel 3"].tolist()
         print("import length "+str(len(data1)))
 
         #bandpass

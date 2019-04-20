@@ -18,6 +18,7 @@ pingc = pingc = fs*0.004
 bandpassw = 500
 t_cycle = 2.048
 output_dir = "/home/robot/Documents/output/"
+filter_output_dir = "/home/robot/Documents/output/filtered/"
 
 #get bandpass filter parameter
 def cheby2_bandpass(lowcut, highcut, fs, order=3):
@@ -100,6 +101,13 @@ if __name__ == "__main__":
         except Exception as e:
             print(e)
 
+        df = pandas.DataFrame()
+        df["out1"] = out1;
+        df["out2"] = out2;
+        df["out3"] = out3;
+        df["out4"] = out4;
+        df.to_csv(os.path.join(output_dir, "3s_"+str(t_3s).replace('.', '_')+"_filtered.csv"))
+
         #find first front with moving_average_max
         outsq1 = np.absolute(out1)
         outsq2 = np.absolute(out2)
@@ -144,6 +152,13 @@ if __name__ == "__main__":
             out4 = cheby2_bandpass_filter(data4, freq-int(ts[2])/2, freq+int(ts[2])/2, fs)
         except Exception as e:
             print(e)
+
+        df = pandas.DataFrame()
+        df["out1"] = out1;
+        df["out2"] = out2;
+        df["out3"] = out3;
+        df["out4"] = out4;
+        df.to_csv(os.path.join(output_dir, "1s_"+str(t_1s_1).replace('.', '_')+"_filtered.csv"))
 
         #find first front with moving_average_max
         outsq1 = np.absolute(out1)

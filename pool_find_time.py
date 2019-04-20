@@ -48,7 +48,7 @@ def moving_average_max(a, n = pingc) :
     return maxi
 
 if __name__ == "__main__":
-    freq = int(sys.argv[1])
+    freq = 40000
     try:
         s = saleae.Saleae()
     except:
@@ -150,4 +150,9 @@ if __name__ == "__main__":
         outsq3 = np.absolute(out3)
         outsq4 = np.absolute(out4)
         max_1s = max(max(outsq1), max(outsq2), max(outsq3), max(outsq4))
-        print("max 3s is "+str(max_1s)+" and max 1s is "+str(max_1s))
+        avem1 = moving_average_max(outsq1)
+        avem2 = moving_average_max(outsq2)
+        avem3 = moving_average_max(outsq3)
+        avem4 = moving_average_max(outsq4)
+        index = min(avem1, avem2, avem3, avem4)
+        print("max 3s is "+str(max_1s)+" and max 1s is "+str(max_1s)+" at index "+str(index))

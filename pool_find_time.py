@@ -91,6 +91,7 @@ if __name__ == "__main__":
         data2 = df["Channel 1"].tolist()[1:]
         data3 = df["Channel 2"].tolist()[1:]
         data4 = df["Channel 3"].tolist()[1:]
+        print("import length "+str(len(data1)))
 
         #bandpass
         try:
@@ -100,6 +101,8 @@ if __name__ == "__main__":
             out4 = cheby2_bandpass_filter(data4, freq-int(ts[2])/2, freq+int(ts[2])/2, fs)
         except Exception as e:
             print(e)
+
+        print("filtered length "+str(len(out1)))
 
         df = pandas.DataFrame()
         df["out1"] = out1;
@@ -137,12 +140,14 @@ if __name__ == "__main__":
         t_1s_1_f = time.time()
         print("1 second starts at "+str(t_1s_1)+" and finishs at "+str(t_1s_1_f))
 
+
         # import data from csv
         df = pandas.read_csv(os.path.join(output_dir, "1s_"+str(t_1s_1).replace('.', '_')+".csv"), skiprows=[1], skipinitialspace=True)
         data1 = df["Channel 0"].tolist()[1:]
         data2 = df["Channel 1"].tolist()[1:]
         data3 = df["Channel 2"].tolist()[1:]
         data4 = df["Channel 3"].tolist()[1:]
+        print("import length "+str(len(data1)))
 
         #bandpass
         try:
@@ -152,6 +157,8 @@ if __name__ == "__main__":
             out4 = cheby2_bandpass_filter(data4, freq-int(ts[2])/2, freq+int(ts[2])/2, fs)
         except Exception as e:
             print(e)
+
+        print("filtered length "+str(len(out1)))
 
         df = pandas.DataFrame()
         df["out1"] = out1;

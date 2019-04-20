@@ -92,10 +92,10 @@ if __name__ == "__main__":
 
         #bandpass
         try:
-            out1 = cheby2_bandpass_filter(data1, freq-ts[2]/2, freq+ts[2]/2, fs)
-            out2 = cheby2_bandpass_filter(data2, freq-ts[2]/2, freq+ts[2]/2, fs)
-            out3 = cheby2_bandpass_filter(data3, freq-ts[2]/2, freq+ts[2]/2, fs)
-            out4 = cheby2_bandpass_filter(data4, freq-ts[2]/2, freq+ts[2]/2, fs)
+            out1 = cheby2_bandpass_filter(data1, freq-int(ts[2])/2, freq+int(ts[2])/2, fs)
+            out2 = cheby2_bandpass_filter(data2, freq-int(ts[2])/2, freq+int(ts[2])/2, fs)
+            out3 = cheby2_bandpass_filter(data3, freq-int(ts[2])/2, freq+int(ts[2])/2, fs)
+            out4 = cheby2_bandpass_filter(data4, freq-int(ts[2])/2, freq+int(ts[2])/2, fs)
         except Exception as e:
             print(e)
 
@@ -137,10 +137,10 @@ if __name__ == "__main__":
 
         #bandpass
         try:
-            out1 = cheby2_bandpass_filter(data1, freq-ts[2]/2, freq+ts[2]/2, fs)
-            out2 = cheby2_bandpass_filter(data2, freq-ts[2]/2, freq+ts[2]/2, fs)
-            out3 = cheby2_bandpass_filter(data3, freq-ts[2]/2, freq+ts[2]/2, fs)
-            out4 = cheby2_bandpass_filter(data4, freq-ts[2]/2, freq+ts[2]/2, fs)
+            out1 = cheby2_bandpass_filter(data1, freq-int(ts[2])/2, freq+int(ts[2])/2, fs)
+            out2 = cheby2_bandpass_filter(data2, freq-int(ts[2])/2, freq+int(ts[2])/2, fs)
+            out3 = cheby2_bandpass_filter(data3, freq-int(ts[2])/2, freq+int(ts[2])/2, fs)
+            out4 = cheby2_bandpass_filter(data4, freq-int(ts[2])/2, freq+int(ts[2])/2, fs)
         except Exception as e:
             print(e)
 

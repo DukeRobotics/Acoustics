@@ -15,16 +15,16 @@ from scipy.signal import cheby2, lfilter
 sampling_rate = 3
 fs = 625000
 pingc = pingc = fs*0.004
-bandpassw = 500
+bandpassw = 16
 t_cycle = 2.048
 output_dir = "/home/robot/Documents/output/"
 
 #get bandpass filter parameter
-def cheby2_bandpass(lowcut, highcut, fs, order=5):
+def cheby2_bandpass(lowcut, highcut, fs, order=3):
     nyq = 0.5 * fs
     low = lowcut / nyq
     high = highcut / nyq
-    b, a = cheby2(order, 5, [low, high], btype='bandpass')
+    b, a = cheby2(order, 2, [low, high], btype='bandpass')
     return b, a
 
 #filter the data with bandpass

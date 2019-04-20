@@ -113,10 +113,10 @@ if __name__ == "__main__":
         df.to_csv(os.path.join(filter_output_dir, "3s_"+str(t_3s).replace('.', '_')+"_filtered.csv"))
 
         #find first front with moving_average_max
-        outsq1 = np.absolute(out1(150:))
-        outsq2 = np.absolute(out2(150:))
-        outsq3 = np.absolute(out3(150:))
-        outsq4 = np.absolute(out4(150:))
+        outsq1 = np.absolute(out1[150:])
+        outsq2 = np.absolute(out2[150:])
+        outsq3 = np.absolute(out3[150:])
+        outsq4 = np.absolute(out4[150:])
         avem1 = moving_average_max(outsq1)+150
         avem2 = moving_average_max(outsq2)+150
         avem3 = moving_average_max(outsq3)+150
@@ -170,10 +170,10 @@ if __name__ == "__main__":
         df.to_csv(os.path.join(filter_output_dir, "1s_"+str(t_1s_1).replace('.', '_')+"_filtered.csv"))
 
         #find first front with moving_average_max
-        outsq1 = np.absolute(out1(150:))
-        outsq2 = np.absolute(out2(150:))
-        outsq3 = np.absolute(out3(150:))
-        outsq4 = np.absolute(out4(150:))
+        outsq1 = np.absolute(out1[150:])
+        outsq2 = np.absolute(out2[150:])
+        outsq3 = np.absolute(out3[150:])
+        outsq4 = np.absolute(out4[150:])
         max_1s = max(max(outsq1), max(outsq2), max(outsq3), max(outsq4))
         avem1 = moving_average_max(outsq1)+150
         avem2 = moving_average_max(outsq2)+150

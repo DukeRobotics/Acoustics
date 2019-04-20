@@ -175,11 +175,11 @@ if __name__ == "__main__":
         outsq3 = np.absolute(out3[150:])
         outsq4 = np.absolute(out4[150:])
         max_1s = max(max(outsq1), max(outsq2), max(outsq3), max(outsq4))
-        avem1 = moving_average_max(outsq1)+150
-        avem2 = moving_average_max(outsq2)+150
-        avem3 = moving_average_max(outsq3)+150
-        avem4 = moving_average_max(outsq4)+150
-        index = min(avem1, avem2, avem3, avem4)
+        maxi1 = np.argmax(outsq1)+150
+        maxi2 = np.argmax(outsq2)+150
+        maxi3 = np.argmax(outsq3)+150
+        maxi4 = np.argmax(outsq4)+150
+        index = np.sum(avem1, avem2, avem3, avem4)/4
         print("max 3s is "+str(max_3s)+" and max 1s is "+str(max_1s)+" at index "+str(index))
 
         ts = False

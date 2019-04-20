@@ -158,4 +158,5 @@ if __name__ == "__main__":
         index = min(avem1, avem2, avem3, avem4)
         print("max 3s is "+str(max_3s)+" and max 1s is "+str(max_1s)+" at index "+str(index))
 
+        ts = False
         ts = input("sample length, sample delay: ").split(' ')

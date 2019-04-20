@@ -76,6 +76,7 @@ if __name__ == "__main__":
     ts = False
     ts = input("sample length, sample delay: ").split(' ')
     while(ts):
+        ts = False
         # initial 3 second sampling
         t_3s = time.time()
         s.capture_start_and_wait_until_finished()
@@ -155,4 +156,6 @@ if __name__ == "__main__":
         avem3 = moving_average_max(outsq3)
         avem4 = moving_average_max(outsq4)
         index = min(avem1, avem2, avem3, avem4)
-        print("max 3s is "+str(max_1s)+" and max 1s is "+str(max_1s)+" at index "+str(index))
+        print("max 3s is "+str(max_3s)+" and max 1s is "+str(max_1s)+" at index "+str(index))
+
+        ts = input("sample length, sample delay: ").split(' ')

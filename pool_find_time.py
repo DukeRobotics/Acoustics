@@ -106,7 +106,7 @@ if __name__ == "__main__":
         df["out2"] = out2;
         df["out3"] = out3;
         df["out4"] = out4;
-        df.to_csv(os.path.join(filtered_output_dir, "3s_"+str(t_3s).replace('.', '_')+"_filtered.csv"))
+        df.to_csv(os.path.join(filter_output_dir, "3s_"+str(t_3s).replace('.', '_')+"_filtered.csv"))
 
         #find first front with moving_average_max
         outsq1 = np.absolute(out1)
@@ -158,7 +158,7 @@ if __name__ == "__main__":
         df["out2"] = out2;
         df["out3"] = out3;
         df["out4"] = out4;
-        df.to_csv(os.path.join(filtered_output_dir, "1s_"+str(t_1s_1).replace('.', '_')+"_filtered.csv"))
+        df.to_csv(os.path.join(filter_output_dir, "1s_"+str(t_1s_1).replace('.', '_')+"_filtered.csv"))
 
         #find first front with moving_average_max
         outsq1 = np.absolute(out1)

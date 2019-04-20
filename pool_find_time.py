@@ -77,6 +77,7 @@ if __name__ == "__main__":
     ts = input("sample length, sample delay, bandpass: ").split(' ')
     while(ts):
         # initial 3 second sampling
+        s.set_capture_seconds(3)
         t_3s = time.time()
         s.capture_start_and_wait_until_finished()
         s.export_data2(os.path.join(output_dir, "3s_"+str(t_3s).replace('.', '_')+".csv"), analog_channels=[0, 1, 2, 3])

@@ -85,6 +85,7 @@ if __name__ == "__main__":
         t_3s_f = time.time()
         print("3 second starts at "+str(t_3s)+" and finishs at "+str(t_3s_f))
 
+        time.sleep(6)
         # import data from csv
         df = pandas.read_csv(os.path.join(output_dir, "3s_"+str(t_3s).replace('.', '_')+".csv"), skiprows=[1], skipinitialspace=True)
         data1 = df["Channel 0"].tolist()
@@ -141,6 +142,7 @@ if __name__ == "__main__":
         print("1 second starts at "+str(t_1s_1)+" and finishs at "+str(t_1s_1_f))
 
 
+        time.sleep(2)
         # import data from csv
         df = pandas.read_csv(os.path.join(output_dir, "1s_"+str(t_1s_1).replace('.', '_')+".csv"), skiprows=[1], skipinitialspace=True)
         data1 = df["Channel 0"].tolist()

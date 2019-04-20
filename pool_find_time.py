@@ -76,7 +76,6 @@ if __name__ == "__main__":
     ts = False
     ts = input("sample length, sample delay: ").split(' ')
     while(ts):
-        ts = False
         # initial 3 second sampling
         t_3s = time.time()
         s.capture_start_and_wait_until_finished()

@@ -15,7 +15,7 @@ from scipy.signal import cheby2, lfilter
 sampling_rate = 3
 fs = 625000
 pingc = pingc = fs*0.004
-bandpassw = 16
+bandpassw = 500
 t_cycle = 2.048
 output_dir = "/home/robot/Documents/output/"
 
@@ -74,7 +74,7 @@ if __name__ == "__main__":
     #     file = open(os.path.join(output_dir, "3s", ".csv"), 'w')
 
     ts = False
-    ts = input("sample length, sample delay: ").split(' ')
+    ts = input("sample length, sample delay, bandpass: ").split(' ')
     while(ts):
         # initial 3 second sampling
         t_3s = time.time()
@@ -92,10 +92,10 @@ if __name__ == "__main__":
 
         #bandpass
         try:
-            out1 = cheby2_bandpass_filter(data1, freq-bandpassw/2, freq+bandpassw/2, fs)
-            out2 = cheby2_bandpass_filter(data2, freq-bandpassw/2, freq+bandpassw/2, fs)
-            out3 = cheby2_bandpass_filter(data3, freq-bandpassw/2, freq+bandpassw/2, fs)
-            out4 = cheby2_bandpass_filter(data4, freq-bandpassw/2, freq+bandpassw/2, fs)
+            out1 = cheby2_bandpass_filter(data1, freq-ts[2]/2, freq+ts[2]/2, fs)
+            out2 = cheby2_bandpass_filter(data2, freq-ts[2]/2, freq+ts[2]/2, fs)
+            out3 = cheby2_bandpass_filter(data3, freq-ts[2]/2, freq+ts[2]/2, fs)
+            out4 = cheby2_bandpass_filter(data4, freq-ts[2]/2, freq+ts[2]/2, fs)
         except Exception as e:
             print(e)
 
@@ -137,10 +137,10 @@ if __name__ == "__main__":
 
         #bandpass
         try:
-            out1 = cheby2_bandpass_filter(data1, freq-bandpassw/2, freq+bandpassw/2, fs)
-            out2 = cheby2_bandpass_filter(data2, freq-bandpassw/2, freq+bandpassw/2, fs)
-            out3 = cheby2_bandpass_filter(data3, freq-bandpassw/2, freq+bandpassw/2, fs)
-            out4 = cheby2_bandpass_filter(data4, freq-bandpassw/2, freq+bandpassw/2, fs)
+            out1 = cheby2_bandpass_filter(data1, freq-ts[2]/2, freq+ts[2]/2, fs)
+            out2 = cheby2_bandpass_filter(data2, freq-ts[2]/2, freq+ts[2]/2, fs)
+            out3 = cheby2_bandpass_filter(data3, freq-ts[2]/2, freq+ts[2]/2, fs)
+            out4 = cheby2_bandpass_filter(data4, freq-ts[2]/2, freq+ts[2]/2, fs)
         except Exception as e:
             print(e)
 
@@ -158,4 +158,4 @@ if __name__ == "__main__":
         print("max 3s is "+str(max_3s)+" and max 1s is "+str(max_1s)+" at index "+str(index))
 
         ts = False
-        ts = input("sample length, sample delay: ").split(' ')
+        ts = input("sample length, sample delay, bandpass: ").split(' ')

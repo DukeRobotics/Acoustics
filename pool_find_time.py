@@ -90,7 +90,7 @@ if __name__ == "__main__":
         t_3s_f = time.time()
         print("3 second starts at "+str(t_3s)+" and finishs at "+str(t_3s_f))
 
-        time.sleep(3)
+        time.sleep(4)
         # import data from csv
         df = pandas.read_csv(os.path.join(output_dir, "3s_"+str(t_3s).replace('.', '_')+".csv"), skiprows=[1], skipinitialspace=True)
         data1 = df["Channel 0"].tolist()

@@ -135,8 +135,6 @@ if __name__ == "__main__":
         # every adjustment of sampling period move the offset 0.01s forward
         # want the max stay in the second fourth of sampling duration(0.08s)
         while r_mag < 2.0/3.0 or r_index < 1.0/4.0 or r_index > 1.0/2.0:
-            print("1s-to-3s magnitude ratio is "+str(r_mag))
-            print("max index ratio is "+str(r_index))
 
             if r_mag != 0:
                 if r_mag < 2.0/3.0:
@@ -146,6 +144,7 @@ if __name__ == "__main__":
                         s_delay = s_delay + 0.01
                     elif r_index > 1.0/2.0:
                         s_delay = s_delay - 0.01
+            print("current delay is "+s_delay)
             # do 0.08 second sampling, 0.02 second before the first first_front, so offset = -0.02
             # get next cycle start time
             cycle = 0
@@ -203,6 +202,8 @@ if __name__ == "__main__":
 
             r_mag = max_1s/max_3s
             r_index = index/(s_len*fs)
+            print("1s-to-3s magnitude ratio is "+str(r_mag))
+            print("max index ratio is "+str(r_index))
 
 
         ts = False

@@ -14,7 +14,7 @@ from scipy.signal import cheby2, lfilter
 # 2 = 1250 kS/s, 3 = 625 kS/s, 4 = 125 kS/s
 sampling_rate = 3
 fs = 625000
-pingc = = fs*0.004
+pingc = fs*0.004
 bandpassw = 1600
 t_cycle = 2.048
 output_dir = "/home/robot/Documents/output/"

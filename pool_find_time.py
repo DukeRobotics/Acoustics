@@ -144,7 +144,7 @@ if __name__ == "__main__":
                         s_delay = s_delay + 0.01
                     elif r_index > 1.0/2.0:
                         s_delay = s_delay - 0.01
-            print("\ncurrent delay is "+s_delay)
+            print("\ncurrent delay is "+str(s_delay))
             # do 0.08 second sampling, 0.02 second before the first first_front, so offset = -0.02
             # get next cycle start time
             cycle = 0

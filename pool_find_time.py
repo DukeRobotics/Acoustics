@@ -14,19 +14,19 @@ from scipy.signal import cheby2, lfilter
 # 2 = 1250 kS/s, 3 = 625 kS/s, 4 = 125 kS/s
 sampling_rate = 3
 fs = 625000
-pingc = pingc = fs*0.004
-bandpassw = 500
+pingc = = fs*0.004
+bandpassw = 1600
 t_cycle = 2.048
 output_dir = "/home/robot/Documents/output/"
 filter_output_dir = "/home/robot/Documents/output/filtered/"
 
 #get bandpass filter parameter
-#bandwidth need to be 400
-def cheby2_bandpass(lowcut, highcut, fs, order=3):
+#bandwidth need to be 800*2
+def cheby2_bandpass(lowcut, highcut, fs, order=5):
     nyq = 0.5 * fs
     low = lowcut / nyq
     high = highcut / nyq
-    b, a = cheby2(order, 2, [low, high], btype='bandpass')
+    b, a = cheby2(order, 60, [low, high], btype='bandpass')
     return b, a
 
 #filter the data with bandpass
@@ -76,11 +76,11 @@ if __name__ == "__main__":
     #     file = open(os.path.join(output_dir, "3s", ".csv"), 'w')
 
     ts = False
-    ts = input("sample length, sample delay, bandpass: ").split(' ')
+    ts = input("sample length, sample delay: ").split(' ')
     while ts:
         s_len = float(ts[0])
         s_delay = float(ts[1])
-        bw = float(ts[2])
+        bw = bandpassw
 
         # initial 3 second sampling
         s.set_capture_seconds(3)
@@ -144,7 +144,7 @@ if __name__ == "__main__":
                         s_delay = s_delay + 0.01
                     elif r_index > 1.0/2.0:
                         s_delay = s_delay - 0.01
-            print("current delay is "+s_delay)
+            print("\ncurrent delay is "+s_delay)
             # do 0.08 second sampling, 0.02 second before the first first_front, so offset = -0.02
             # get next cycle start time
             cycle = 0
@@ -198,7 +198,7 @@ if __name__ == "__main__":
             total = outsq1+outsq2+outsq3+outsq4
             max_1s = max(total)
             index = np.argmax(total)+150
-            print("max 3s is "+str(max_3s)+" and max 1s is "+str(max_1s)+" at index "+str(index))
+            print("\nmax 3s is "+str(max_3s)+" and max 1s is "+str(max_1s)+" at index "+str(index))
 
             r_mag = max_1s/max_3s
             r_index = index/(s_len*fs)
@@ -207,4 +207,4 @@ if __name__ == "__main__":
 
 
         ts = False
-        ts = input("sample length, sample delay, bandpass: ").split(' ')
+        ts = input("sample length, sample delay: ").split(' ')

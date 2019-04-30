@@ -25,7 +25,7 @@ df = pandas.DataFrame()
 s = None
 
 
-def saleae_export(s):
+def saleae_export():
     s.export_data2(temp_path, analog_channels=[0, 1, 2, 3])
     return
 
@@ -65,7 +65,6 @@ def moving_average_max(a, n = pingc) :
 if __name__ == "__main__":
     freq = 40000
     try:
-        global s
         s = saleae.Saleae()
     except:
         subprocess.Popen(["/home/robot/Logic/Logic", "-socket"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
@@ -89,7 +88,7 @@ if __name__ == "__main__":
     except:
         pass
 
-    export = threading.Thread(target=saleae_export, args=(s,))
+    export = threading.Thread(target=saleae_export)
     read = threading.Thread(target=pandas_read)
 
     # try:

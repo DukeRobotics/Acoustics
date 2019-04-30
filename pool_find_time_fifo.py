@@ -22,6 +22,7 @@ output_dir = "/home/robot/Documents/output/"
 filter_output_dir = "/home/robot/Documents/output/filtered/"
 temp_path = "/tmp/dummy.csv"
 df = pandas.DataFrame()
+s = None
 
 
 def saleae_export(s):
@@ -64,6 +65,7 @@ def moving_average_max(a, n = pingc) :
 if __name__ == "__main__":
     freq = 40000
     try:
+        global s
         s = saleae.Saleae()
     except:
         subprocess.Popen(["/home/robot/Logic/Logic", "-socket"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)

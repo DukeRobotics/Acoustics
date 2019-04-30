@@ -107,7 +107,7 @@ if __name__ == "__main__":
         s.set_capture_seconds(2.1)
         t_3s = time.time()
         s.capture_start_and_wait_until_finished()
-        read.start()
+        # read.start()
         s.export_data2(temp_path, analog_channels=[0, 1, 2, 3])
         # s.export_data2(os.path.join(output_dir, "3s_"+str(t_3s).replace('.', '_')+".csv"), analog_channels=[0, 1, 2, 3])
         t_3s_f = time.time()
@@ -116,7 +116,7 @@ if __name__ == "__main__":
         # time.sleep(50)
         # import data from csv
         # export.join()
-        read.join()
+        # read.join()
         data1 = df["Channel 0"].tolist()
         data2 = df["Channel 1"].tolist()
         data3 = df["Channel 2"].tolist()

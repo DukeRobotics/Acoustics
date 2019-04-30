@@ -111,7 +111,7 @@ if __name__ == "__main__":
         t_3s_f = time.time()
         print("2.1 second starts at "+str(t_3s)+" and finishs at "+str(t_3s_f))
 
-        # time.sleep(4)
+        time.sleep(50)
         # import data from csv
         # read.start()
         # export.join()

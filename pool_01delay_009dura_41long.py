@@ -76,19 +76,19 @@ if __name__ == "__main__":
     #     file = open(os.path.join(output_dir, "3s", ".csv"), 'w')
 
     ts = False
-    ts = input("sample length, sample delay: ").split(' ')
+    ts = input("start")
     while ts:
-        s_len = float(ts[0])
-        s_delay = float(ts[1])
+        s_len = 0.09
+        s_delay = 0.1
         bw = bandpassw
 
         # initial 3 second sampling
-        s.set_capture_seconds(2.1)
+        s.set_capture_seconds(4.1)
         t_3s = time.time()
         s.capture_start_and_wait_until_finished()
         s.export_data2(os.path.join(output_dir, "3s_"+str(t_3s).replace('.', '_')+".csv"), analog_channels=[0, 1, 2, 3])
         t_3s_f = time.time()
-        print("2.1 second starts at "+str(t_3s)+" and finishs at "+str(t_3s_f))
+        print("4.1 second starts at "+str(t_3s)+" and finishs at "+str(t_3s_f))
 
         time.sleep(4)
         # import data from csv
@@ -132,19 +132,12 @@ if __name__ == "__main__":
         r_mag = 0
         r_index = 0
         cycle = 0
+        counter = 0
 
         # every adjustment of sampling period move the offset 0.01s forward
         # want the max stay in the second fourth of sampling duration(0.08s)
-        while r_mag < 2.0/3.0 or r_index < 1.0/4.0 or r_index > 3.0/4.0:
+        while counter < 10:
 
-            if r_mag != 0:
-                if r_mag < 2.0/3.0:
-                    s_delay = s_delay + 0.005
-                else:
-                    if r_index < 1.0/4.0:
-                        s_delay = s_delay + 0.005
-                    elif r_index > 1.0/2.0:
-                        s_delay = s_delay - 0.005
             print("\ncurrent delay is "+str(s_delay))
             # do 0.08 second sampling, 0.02 second before the first first_front, so offset = -0.02
             # get next cycle start time
@@ -198,74 +191,13 @@ if __name__ == "__main__":
             total = outsq1+outsq2+outsq3+outsq4
             max_1s = max(total)
             index = np.argmax(total)+150
-            print("\nmax 2.1s is "+str(max_3s)+" and max 1s is "+str(max_1s)+" at index "+str(index))
+            print("\nmax 3s is "+str(max_3s)+" and max 1s is "+str(max_1s)+" at index "+str(index))
 
             r_mag = max_1s/max_3s
             r_index = index/(s_len*fs)
-            print("\n1s-to-2.1s magnitude ratio is "+str(r_mag))
+            print("\n1s-to-3s magnitude ratio is "+str(r_mag))
             print("max index ratio is "+str(r_index))
-
-
-        print("\ncurrent delay is "+str(s_delay))
-        # do 0.08 second sampling, 0.02 second before the first first_front, so offset = -0.02
-        # get next cycle start time
-        while cycle*t_cycle+first_front-s_delay < time.time():
-            cycle = cycle + 1
-        next_start = cycle*t_cycle+first_front-s_delay
-        latest_front = cycle*t_cycle+first_front
-        # wait for start time and do 0.5 second sampling
-        while time.time() < next_start:
-            pass
-        s.set_capture_seconds(s_len)
-        t_1s_1 = time.time()
-        s.capture_start_and_wait_until_finished()
-        s.export_data2(os.path.join(output_dir, "1s_"+str(t_1s_1).replace('.', '_')+".csv"), analog_channels=[0, 1, 2, 3])
-        t_1s_1_f = time.time()
-        print("1 second starts at "+str(t_1s_1)+" and finishs at "+str(t_1s_1_f))
-
-
-        time.sleep(1)
-        # import data from csv
-        df = pandas.read_csv(os.path.join(output_dir, "1s_"+str(t_1s_1).replace('.', '_')+".csv"), skiprows=[1], skipinitialspace=True)
-        data1 = df["Channel 0"].tolist()
-        data2 = df["Channel 1"].tolist()
-        data3 = df["Channel 2"].tolist()
-        data4 = df["Channel 3"].tolist()
-        print("import length "+str(len(data1)))
-
-        #bandpass
-        try:
-            out1 = cheby2_bandpass_filter(data1, freq-bw/2, freq+bw/2, fs)
-            out2 = cheby2_bandpass_filter(data2, freq-bw/2, freq+bw/2, fs)
-            out3 = cheby2_bandpass_filter(data3, freq-bw/2, freq+bw/2, fs)
-            out4 = cheby2_bandpass_filter(data4, freq-bw/2, freq+bw/2, fs)
-        except Exception as e:
-            print(e)
-
-        print("filtered length "+str(len(out1)))
-
-        df = pandas.DataFrame()
-        df["out1"] = out1;
-        df["out2"] = out2;
-        df["out3"] = out3;
-        df["out4"] = out4;
-        df.to_csv(os.path.join(filter_output_dir, "1s_"+str(t_1s_1).replace('.', '_')+"_filtered.csv"))
-
-        #find first front with moving_average_max
-        outsq1 = np.absolute(out1[150:])
-        outsq2 = np.absolute(out2[150:])
-        outsq3 = np.absolute(out3[150:])
-        outsq4 = np.absolute(out4[150:])
-        total = outsq1+outsq2+outsq3+outsq4
-        max_1s = max(total)
-        index = np.argmax(total)+150
-        print("\nmax 2.1s is "+str(max_3s)+" and max 1s is "+str(max_1s)+" at index "+str(index))
-
-        r_mag = max_1s/max_3s
-        r_index = index/(s_len*fs)
-        print("\n1s-to-2.1s magnitude ratio is "+str(r_mag))
-        print("max index ratio is "+str(r_index))
-
+            counter = counter + 1
 
         ts = False
-        ts = input("sample length, sample delay: ").split(' ')
+        ts = input("start")

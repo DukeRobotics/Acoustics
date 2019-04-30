@@ -14,7 +14,25 @@ title('1s');
 [max3, i3] = max(out3);
 [max4, i4] = max(out4);
 out = out1+out2+out3+out4;
-[max, i] = max(out);
+[maxs, i] = max(out);
+
+% figure(2)
+% plot(out5);
+% hold on
+% plot(out6);
+% hold on
+% plot(out7);
+% hold on
+% plot(out8);
+% legend('1', '2', '3', '4');
+% title('3s');
+% 
+% [max11, i11] = max(out5);
+% [max12, i12] = max(out6);
+% [max13, i13] = max(out7);
+% [max14, i14] = max(out8);
+% out1 = out5+out6+out7+out8;
+% [max1, i1] = max(out1);
 % 
 % figure(2)
 % plot(out5);

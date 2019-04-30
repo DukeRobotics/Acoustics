@@ -22,12 +22,12 @@ output_dir = "/home/robot/Documents/output/"
 filter_output_dir = "/home/robot/Documents/output/filtered/"
 temp_path = "/tmp/dummy.csv"
 df = pandas.DataFrame()
-s = None
+# s = None
 
 
-def saleae_export():
-    s.export_data2(temp_path, analog_channels=[0, 1, 2, 3])
-    return
+# def saleae_export():
+#     s.export_data2(temp_path, analog_channels=[0, 1, 2, 3])
+#     return
 
 def pandas_read():
     global df
@@ -88,7 +88,7 @@ if __name__ == "__main__":
     except:
         pass
 
-    export = threading.Thread(target=saleae_export)
+    # export = threading.Thread(target=saleae_export)
     read = threading.Thread(target=pandas_read)
 
     # try:
@@ -108,14 +108,14 @@ if __name__ == "__main__":
         t_3s = time.time()
         s.capture_start_and_wait_until_finished()
         read.start()
-        export.start()
+        s.export_data2(temp_path, analog_channels=[0, 1, 2, 3])
         # s.export_data2(os.path.join(output_dir, "3s_"+str(t_3s).replace('.', '_')+".csv"), analog_channels=[0, 1, 2, 3])
         t_3s_f = time.time()
         print("2.1 second starts at "+str(t_3s)+" and finishs at "+str(t_3s_f))
 
         # time.sleep(50)
         # import data from csv
-        export.join()
+        # export.join()
         read.join()
         data1 = df["Channel 0"].tolist()
         data2 = df["Channel 1"].tolist()

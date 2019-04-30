@@ -10,7 +10,7 @@ import math
 import sys
 
 #sampling frequency
-fs = 130000
+fs = 625000
 #sampling time period
 ts = 3
 #number of sample taken during the ping

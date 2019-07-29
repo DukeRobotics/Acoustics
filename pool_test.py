@@ -54,17 +54,17 @@ if __name__ == "__main__":
     s.capture_start_and_wait_until_finished()
     s.export_data2(os.path.join(output_path, file_name), analog_channels=[0, 1, 2, 3])
 #
-# # check how long does 4.5 second sampling need
-#     time.sleep(10)
-#     print("finish sampling")
-#
-#     p = subprocess.Popen(["/home/robot/Documents/Acoustics/cross_corr_4.py", os.path.join(output_path, file_name)], stdout=subprocess.PIPE)
-#
-#     while p.poll() is None:
-#         l = p.stdout.readline() # This blocks until it receives a newline.
-#         print(l)
-#
-#     print(p.stdout.read())
+# check how long does 4.5 second sampling need
+    time.sleep(12)
+    print("finish sampling")
+
+    p = subprocess.Popen(["/home/robot/Documents/Acoustics/cross_corr_4.py", os.path.join(output_path, file_name)], stdout=subprocess.PIPE)
+
+    while p.poll() is None:
+        l = p.stdout.readline() # This blocks until it receives a newline.
+        print(l)
+
+    print(p.stdout.read())
 
 
 

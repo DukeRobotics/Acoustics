@@ -50,9 +50,9 @@ if __name__ == "__main__":
     fn = False
     fn = input("filename: x y z version: ").split(' ')
 
-#     file_name = "625k_40k_"+fn[0]+"_"+fn[1]+"_"+fn[2]+"("+fn[3]+").csv"
-#     s.capture_start_and_wait_until_finished()
-#     s.export_data2(os.path.join(output_path, file_name), analog_channels=[0, 1, 2, 3])
+    file_name = "625k_40k_"+fn[0]+"_"+fn[1]+"_"+fn[2]+"("+fn[3]+").csv"
+    s.capture_start_and_wait_until_finished()
+    s.export_data2(os.path.join(output_path, file_name), analog_channels=[0, 1, 2, 3])
 #
 # # check how long does 4.5 second sampling need
 #     time.sleep(10)

@@ -38,7 +38,7 @@ if __name__ == "__main__":
     try:
         if s.get_active_device().active:
             s.set_active_channels([], [0, 1, 2, 3])
-            s.set_capture_seconds(3)
+            s.set_capture_seconds(4.5)
             s.set_sample_rate(s.get_all_sample_rates()[sampling_rate])
     except:
         exit()
@@ -49,29 +49,31 @@ if __name__ == "__main__":
     #     file = open(sys.argv[1], 'w')
     fn = False
     fn = input("filename: x y z version: ").split(' ')
-    while(fn):
-        file_name = "625k_40k_"+fn[0]+"_"+fn[1]+"_"+fn[2]+"("+fn[3]+").csv"
-        fn = False
-        s.capture_start_and_wait_until_finished()
-        s.export_data2(output_path+file_name, analog_channels=[0, 1, 2, 3])
 
-        time.sleep(10)
-        print("finish sampling")
-        fn = input("filename: x y z version: ").split(' ')
+#     file_name = "625k_40k_"+fn[0]+"_"+fn[1]+"_"+fn[2]+"("+fn[3]+").csv"
+#     s.capture_start_and_wait_until_finished()
+#     s.export_data2(os.path.join(output_path, file_name), analog_channels=[0, 1, 2, 3])
+#
+# # check how long does 4.5 second sampling need
+#     time.sleep(10)
+#     print("finish sampling")
+#
+#     p = subprocess.Popen(["/home/robot/Documents/Acoustics/cross_corr_4.py", os.path.join(output_path, file_name)], stdout=subprocess.PIPE)
+#
+#     while p.poll() is None:
+#         l = p.stdout.readline() # This blocks until it receives a newline.
+#         print(l)
+#
+#     print(p.stdout.read())
 
-    # s.capture_start_and_wait_until_finished()
-    # s.export_data2(output_path+"output2/"+sys.argv[1], analog_channels=[0, 1, 2, 3])
+
+
+    # while(fn):
+    #     file_name = "625k_40k_"+fn[0]+"_"+fn[1]+"_"+fn[2]+"("+fn[3]+").csv"
+    #     fn = False
+    #     s.capture_start_and_wait_until_finished()
+    #     s.export_data2(output_path+file_name, analog_channels=[0, 1, 2, 3])
     #
-    # time.sleep(10)
-    #
-    # s.capture_start_and_wait_until_finished()
-    # s.export_data2(output_path+"output3/"+sys.argv[1], analog_channels=[0, 1, 2, 3])
-
-    # s.capture_start_and_wait_until_finished()
-    # s.export_data2(sys.argv[1], analog_channels=[0, 1, 2, 3])
-    # count +=1
-    # print(count)
-    # time.sleep(5)
-    # s.set_capture_seconds(3)
-
-        # exit()
+    #     time.sleep(10)
+    #     print("finish sampling")
+    #     fn = input("filename: x y z version: ").split(' ')

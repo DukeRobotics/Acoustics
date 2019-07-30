@@ -50,30 +50,30 @@ if __name__ == "__main__":
     fn = False
     fn = input("filename: x y z version: ").split(' ')
 
-    file_name = "625k_40k_"+fn[0]+"_"+fn[1]+"_"+fn[2]+"("+fn[3]+").csv"
-    s.capture_start_and_wait_until_finished()
-    s.export_data2(os.path.join(output_path, file_name), analog_channels=[0, 1, 2, 3])
+#     file_name = "625k_40k_"+fn[0]+"_"+fn[1]+"_"+fn[2]+"("+fn[3]+").csv"
+#     s.capture_start_and_wait_until_finished()
+#     s.export_data2(os.path.join(output_path, file_name), analog_channels=[0, 1, 2, 3])
+# #
+# # check how long does 4.5 second sampling need
+#     time.sleep(12)
+#     print("finish sampling")
 #
-# check how long does 4.5 second sampling need
-    time.sleep(12)
-    print("finish sampling")
-
-    p = subprocess.Popen(["python3", "/home/robot/Documents/Acoustics/cross_corr_4.py", os.path.join(output_path, file_name)], stdout=subprocess.PIPE)
-
-    while p.poll() is None:
-        l = p.stdout.readline() # This blocks until it receives a newline.
-        print(l)
-
-    print(p.stdout.read())
+#     p = subprocess.Popen(["python3", "/home/robot/Documents/Acoustics/cross_corr_4.py", os.path.join(output_path, file_name)], stdout=subprocess.PIPE)
+#
+#     while p.poll() is None:
+#         l = p.stdout.readline() # This blocks until it receives a newline.
+#         print(l)
+#
+#     print(p.stdout.read())
 
 
 
-    # while(fn):
-    #     file_name = "625k_40k_"+fn[0]+"_"+fn[1]+"_"+fn[2]+"("+fn[3]+").csv"
-    #     fn = False
-    #     s.capture_start_and_wait_until_finished()
-    #     s.export_data2(output_path+file_name, analog_channels=[0, 1, 2, 3])
-    #
-    #     time.sleep(10)
-    #     print("finish sampling")
-    #     fn = input("filename: x y z version: ").split(' ')
+    while(fn):
+        file_name = "625k_40k_"+fn[0]+"_"+fn[1]+"_"+fn[2]+"("+fn[3]+").csv"
+        fn = False
+        s.capture_start_and_wait_until_finished()
+        s.export_data2(output_path+file_name, analog_channels=[0, 1, 2, 3])
+
+        time.sleep(12)
+        print("finish sampling")
+        fn = input("filename: x y z version: ").split(' ')

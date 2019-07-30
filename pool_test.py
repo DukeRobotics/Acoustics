@@ -58,7 +58,7 @@ if __name__ == "__main__":
     time.sleep(12)
     print("finish sampling")
 
-    p = subprocess.Popen(["/home/robot/Documents/Acoustics/cross_corr_4.py", os.path.join(output_path, file_name)], stdout=subprocess.PIPE)
+    p = subprocess.Popen(["python3", "/home/robot/Documents/Acoustics/cross_corr_4.py", os.path.join(output_path, file_name)], stdout=subprocess.PIPE)
 
     while p.poll() is None:
         l = p.stdout.readline() # This blocks until it receives a newline.

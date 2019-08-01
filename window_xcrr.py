@@ -22,7 +22,7 @@ vsound = 1481
 #nipple distance between hydrophone
 spac = 0.012
 #allowed phase diff
-dphase = math.ceil(spac/vsound*fs*10)
+dphase = math.ceil(spac/vsound*fs*10)+10
 #sample per cycle
 spc = math.ceil(fs/freq)
 
@@ -60,38 +60,72 @@ def system(target, *data):
     return (diff_equation(hp1, hp2, target, diff_12), diff_equation(hp1, hp3, target, diff_13), diff_equation(hp3, hp4, target, diff_34))
 
 # need to adjust n and threshold for different data set
-def moving_average_increase(a, n = spc*3):
+def moving_average_increase(a, isLess, n = spc*3):
     weights = np.repeat(1.0, n)/n
     alist = np.convolve(a, weights, 'valid')
     # even more smooth
     alist = np.convolve(alist, weights, 'valid')
     # alist = np.convolve(alist, weights, 'valid')
     # alist = np.convolve(alist, weights, 'valid')
-    # plt.figure()
-    # plt.plot(a)
-    # plt.figure()
-    # plt.plot(alist)
-    # plt.show()
     lasta = alist[0]
     start_o = 0
     end_o = 0
+    inc_arr = []
+    temp = []
     start = 0
     end = 0
     last_inc = False
-    for k in range(len(alist)):
+    inc_o = 0
+    diff_o = 0
+    inc_c = 0
+    for k in range(np.argmax(alist)+2):
         ave = alist[k]
         if last_inc:
-            if ave > lasta:
+            if ave < lasta:
                 end = k
-            else:
                 last_inc = False
-            if (alist[end] - alist[start]) > (alist[end_o] - alist[start_o]):
-                start_o = start
-                end_o = end
+                inc_c = alist[end] - alist[start]
+                if inc_c > inc_o:
+                    inc_arr.append([start_o, end_o])
+                    [temp.append(inc) for inc in inc_arr if (alist[inc[1]] - alist[inc[0]])*5 > inc_c]
+                    inc_arr = temp
+                    temp = []
+                    start_o = start
+                    end_o = end
+                    inc_o = alist[end_o] - alist[start_o]
+                    diff_o = end_o - start_o
+                elif inc_c*2 > inc_o:
+                    inc_arr.append([start, end])
         elif ave > lasta:
             start = k
             last_inc = True
         lasta = ave
+    inc_arr.append([start_o, end_o])
+    if isLess:
+        start_o = start_o
+    else:
+        d_inc = []
+        [d_inc.append((alist[inc[1]]-alist[inc[0]])/(inc[1]-inc[0])) for inc in inc_arr]
+        max_d = max(d_inc)
+        temp = []
+        for i in range(len(d_inc)):
+            if d_inc[i]*3 > max_d:
+                temp.append(inc_arr[i])
+        start_o = len(alist)
+        end_o = 0
+        for inc in temp:
+            if inc[0] < start_o:
+                start_o = inc[0]
+                end_o = inc[1]
+        print("inc_arr", inc_arr)
+        print("diff", d_inc)
+        print("temp", temp)
+    print(start_o, end_o)
+    plt.figure()
+    plt.plot(a)
+    plt.figure()
+    plt.plot(alist)
+    plt.show()
     return start_o, end_o
 
 def find_first_window(data, avem):
@@ -163,39 +197,6 @@ def find_second_window(starts_arr, ends_arr):
 
 
 
-    #
-    # if len(starts_arr) == 1:
-    #     return None, None
-    # comp = [starts > ends_arr[0] for starts in starts_arr[1:]]
-    # if all(comp):
-    #     return find_second_window(starts_arr[1:], ends_arr[1:])
-    # else:
-    #     true_index = np.where(comp)[0]
-    #     true_index = [index+1 for index in true_index]
-    #     print(true_index)
-    #     if len(true_index) > 0:
-    #         if len(true_index) == 2 and starts_arr[true_index[1]] < ends_arr[true_index[0]]:
-    #             # right now reports the earlier overlap, if wrong switch to longer overlap
-    #             [starts_arr.pop(i) for i in reversed(true_index)]
-    #             [ends_arr.pop(i) for i in reversed(true_index)]
-    #         else:
-    #             [starts_arr.pop(i) for i in reversed(true_index)]
-    #             [ends_arr.pop(i) for i in reversed(true_index)]
-    #     return max(starts_arr), min(ends_arr)
-    #
-    #
-    # starts = 0
-    # ends = len(outw)-1
-    # if aved+math.ceil(fs/freq) < ends:
-    #     starts = aved+math.ceil(fs/freq)
-    #     starts = int(starts)
-    # # might need to change window size
-    # if aved+math.ceil(fs/freq)*5 < ends:
-    #     ends = aved+math.ceil(fs/freq)*5
-    #     ends = int(ends)
-    # return starts, ends
-
-
 def first_window(data1, data2, data3, data4):
     datasq1 = np.absolute(data1)
     datasq2 = np.absolute(data2)
@@ -206,6 +207,7 @@ def first_window(data1, data2, data3, data4):
     avem, ratio = moving_average_max(datasq)
 
     start, end = find_first_window(datasq, avem)
+    print(start, end)
 
 
     dataw1 = datasq1[start:(end+1)]
@@ -216,10 +218,10 @@ def first_window(data1, data2, data3, data4):
     return dataw1, dataw2, dataw3, dataw4, ratio
 
 def second_window(dataw1, dataw2, dataw3, dataw4):
-    starts1, ends1 = moving_average_increase(dataw1, spc*3)
-    starts2, ends2 = moving_average_increase(dataw2, spc*3)
-    starts3, ends3 = moving_average_increase(dataw3, spc*3)
-    starts4, ends4 = moving_average_increase(dataw4, spc*3)
+    starts1, ends1 = moving_average_increase(dataw1, False, spc*5)
+    starts2, ends2 = moving_average_increase(dataw2, False, spc*5)
+    starts3, ends3 = moving_average_increase(dataw3, False, spc*5)
+    starts4, ends4 = moving_average_increase(dataw4, False, spc*5)
     starts, ends, overlap = find_second_window([starts1, starts2, starts3, starts4], [ends1, ends2, ends3, ends4])
     # starts = max([starts1, starts2, starts3, starts4])
     # ends = min([ends1, ends2, ends3, ends4])
@@ -237,10 +239,31 @@ def second_window(dataw1, dataw2, dataw3, dataw4):
     return datasw1, datasw2, datasw3, datasw4, overlap
 
 def second_window_less(dataw1, dataw2, dataw3, dataw4):
-    starts1, ends1 = moving_average_increase(dataw1, spc*5)
-    starts2, ends2 = moving_average_increase(dataw2, spc*5)
-    starts3, ends3 = moving_average_increase(dataw3, spc*5)
-    starts4, ends4 = moving_average_increase(dataw4, spc*5)
+    starts1, ends1 = moving_average_increase(dataw1, False, spc*5)
+    starts2, ends2 = moving_average_increase(dataw2, False, spc*5)
+    starts3, ends3 = moving_average_increase(dataw3, False, spc*5)
+    starts4, ends4 = moving_average_increase(dataw4, False, spc*5)
+    starts, ends, overlap = find_second_window([starts1, starts2, starts3, starts4], [ends1, ends2, ends3, ends4])
+    print([starts1, starts2, starts3, starts4], [ends1, ends2, ends3, ends4])
+    print(starts, ends, overlap)
+    # starts = max([starts1, starts2, starts3, starts4])
+    # ends = min([ends1, ends2, ends3, ends4])
+
+    if not overlap:
+        return None, None, None, None, 0
+
+    datasw1 = dataw1[starts:(ends+1)]
+    datasw2 = dataw2[starts:(ends+1)]
+    datasw3 = dataw3[starts:(ends+1)]
+    datasw4 = dataw4[starts:(ends+1)]
+
+    return datasw1, datasw2, datasw3, datasw4, overlap
+
+def second_window_less_less(dataw1, dataw2, dataw3, dataw4):
+    starts1, ends1 = moving_average_increase(dataw1, True, spc*10)
+    starts2, ends2 = moving_average_increase(dataw2, True, spc*10)
+    starts3, ends3 = moving_average_increase(dataw3, True, spc*10)
+    starts4, ends4 = moving_average_increase(dataw4, True, spc*10)
     starts, ends, overlap = find_second_window([starts1, starts2, starts3, starts4], [ends1, ends2, ends3, ends4])
     print([starts1, starts2, starts3, starts4], [ends1, ends2, ends3, ends4])
     print(starts, ends, overlap)
@@ -272,7 +295,7 @@ def intp_window(datasw1, datasw2, datasw3, datasw4):
 
 # only use the middle section to avoid distortion
 
-    intp_len = math.ceil(len(data1_intp)/4)
+    intp_len = int(math.ceil(len(data1_intp)/4))
     data1_intpw = data1_intp[intp_len*2: intp_len*3]
     data2_intpw = data2_intp[intp_len*2: intp_len*3]
     data3_intpw = data3_intp[intp_len*2: intp_len*3]
@@ -329,13 +352,6 @@ if __name__ == "__main__":
     dataf3 = cheby2_bandpass_filter(data3, freq-bw/2, freq+bw/2, fs, k)
     dataf4 = cheby2_bandpass_filter(data4, freq-bw/2, freq+bw/2, fs, k)
 
-    # plt.figure()
-    # plt.plot(dataf1)
-    # plt.plot(dataf2)
-    # plt.plot(dataf3)
-    # plt.plot(dataf4)
-    # plt.legend(['1', '2', '3', '4'])
-    # plt.show()
 
     f_len = int(math.ceil(len(dataf1)/2))
     dataf1_1 = dataf1[13000:f_len]
@@ -352,11 +368,21 @@ if __name__ == "__main__":
     dataw1_2, dataw2_2, dataw3_2, dataw4_2, ratio_2 = first_window(dataf1_2, dataf2_2, dataf3_2, dataf4_2)
     print(ratio_1, ratio_2)
 
+    # plt.figure()
+    # plt.plot(dataf1)
+    # plt.plot(dataf2)
+    # plt.plot(dataf3)
+    # plt.plot(dataf4)
+    # plt.legend(['1', '2', '3', '4'])
+    # plt.show()
+
     if ratio_1 > 3:
         if ratio_1 > 10:
             datasw1_1, datasw2_1, datasw3_1, datasw4_1, overlap_1 = second_window(dataw1_1, dataw2_1, dataw3_1, dataw4_1)
-        else:
+        elif ratio_1 > 5:
             datasw1_1, datasw2_1, datasw3_1, datasw4_1, overlap_1 = second_window_less(dataw1_1, dataw2_1, dataw3_1, dataw4_1)
+        else:
+            datasw1_1, datasw2_1, datasw3_1, datasw4_1, overlap_1 = second_window_less_less(dataw1_1, dataw2_1, dataw3_1, dataw4_1)
         if overlap_1:
             data1_intpw_1, data2_intpw_1, data3_intpw_1, data4_intpw_1 = intp_window(datasw1_1, datasw2_1, datasw3_1, datasw4_1)
             diff_12_1, diff_13_1, diff_34_1 = xcrr(data1_intpw_1, data2_intpw_1, data3_intpw_1, data4_intpw_1)
@@ -378,8 +404,10 @@ if __name__ == "__main__":
     if ratio_2 > 3:
         if ratio_2 > 10:
             datasw1_2, datasw2_2, datasw3_2, datasw4_2, overlap_2 = second_window(dataw1_2, dataw2_2, dataw3_2, dataw4_2)
-        else:
+        elif ratio_2 > 5:
             datasw1_2, datasw2_2, datasw3_2, datasw4_2, overlap_2 = second_window_less(dataw1_2, dataw2_2, dataw3_2, dataw4_2)
+        else:
+            datasw1_2, datasw2_2, datasw3_2, datasw4_2, overlap_2 = second_window_less_less(dataw1_2, dataw2_2, dataw3_2, dataw4_2)
         if overlap_2:
             data1_intpw_2, data2_intpw_2, data3_intpw_2, data4_intpw_2 = intp_window(datasw1_2, datasw2_2, datasw3_2, datasw4_2)
             diff_12_2, diff_13_2, diff_34_2 = xcrr(data1_intpw_2, data2_intpw_2, data3_intpw_2, data4_intpw_2)

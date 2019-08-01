@@ -1,20 +1,20 @@
-figure(1)
-plot(out1);
-hold on
-plot(out2);
-hold on
-plot(out3);
-hold on
-plot(out4);
-legend('1', '2', '3', '4');
-title('1s');
-
-[max1, i1] = max(out1);
-[max2, i2] = max(out2);
-[max3, i3] = max(out3);
-[max4, i4] = max(out4);
-out = out1+out2+out3+out4;
-[maxs, i] = max(out);
+% figure(1)
+% plot(out1);
+% hold on
+% plot(out2);
+% hold on
+% plot(out3);
+% hold on
+% plot(out4);
+% legend('1', '2', '3', '4');
+% title('1s');
+% 
+% [max1, i1] = max(out1);
+% [max2, i2] = max(out2);
+% [max3, i3] = max(out3);
+% [max4, i4] = max(out4);
+% out = out1+out2+out3+out4;
+% [maxs, i] = max(out);
 
 % figure(2)
 % plot(out5);
@@ -46,15 +46,15 @@ out = out1+out2+out3+out4;
 % title('3s');
 
 
-% pingerFreq = 40000;
-% fs = 625000;
-% bw = 8;
-% 
-% [b,a]=cheby2(3,2,[(pingerFreq-bw)/fs*2 (pingerFreq+bw)/fs*2], 'bandpass');
-% filteredWave0 = filter(b, a, Channel0);
-% filteredWave1 = filter(b, a, Channel1);
-% filteredWave2 = filter(b, a, Channel2);
-% filteredWave3 = filter(b, a, Channel3);
+pingerFreq = 35000;
+fs = 625000;
+bw = 8;
+
+[b,a]=cheby2(3,2,[(pingerFreq-bw)/fs*2 (pingerFreq+bw)/fs*2], 'bandpass');
+filteredWave0 = filter(b, a, Channel0);
+filteredWave1 = filter(b, a, Channel1);
+filteredWave2 = filter(b, a, Channel2);
+filteredWave3 = filter(b, a, Channel3);
 % filteredWave4 = filter(b, a, Channel4);
 % filteredWave5 = filter(b, a, Channel5);
 % filteredWave6 = filter(b, a, Channel6);
@@ -76,18 +76,28 @@ out = out1+out2+out3+out4;
 % filteredWave22 = filter(b, a, Channel22);
 % filteredWave23 = filter(b, a, Channel23);
 
-
-
 % figure(1)
-% plot(filteredWave0)
+% plot(Channel0);
 % hold on
-% plot(filteredWave1)
+% plot(Channel1);
 % hold on
-% plot(filteredWave2)
+% plot(Channel2);
 % hold on
-% plot(filteredWave3)
+% plot(Channel3);
+% hold on
 % legend('1', '2', '3', '4');
-% title('1s');
+
+
+figure(1)
+plot(filteredWave0)
+hold on
+plot(filteredWave1)
+hold on
+plot(filteredWave2)
+hold on
+plot(filteredWave3)
+legend('1', '2', '3', '4');
+title('1s');
 % 
 % figure(2)
 % plot(filteredWave4)

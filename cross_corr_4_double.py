@@ -1,6 +1,7 @@
 import pandas
 # correlate(in1, in2) = k: in2 faster than in1 by k
 from scipy.signal import correlate, cheby2, lfilter
+import scipy.signal as signal
 from scipy.interpolate import interp1d
 from scipy.optimize import fsolve
 import matplotlib.pyplot as plt
@@ -15,7 +16,7 @@ ts = 3
 #number of sample taken during the ping
 pingc = fs*0.004
 #target frequency
-freq = 40000
+freq = 30000
 #speed of sound in water
 vsound = 1481
 #nipple distance between hydrophone
@@ -23,19 +24,19 @@ spac = 0.012
 #allowed phase diff
 dphase = math.pi*2/(vsound/freq)*spac
 
-bw = 1600
+#bw = 1400
 
 #bandwidth need to be 800*2
-def cheby2_bandpass(lowcut, highcut, fs, order=5):
+def cheby2_bandpass(lowcut, highcut, fs, k, order=5):
     nyq = 0.5 * fs
     low = lowcut / nyq
     high = highcut / nyq
-    b, a = cheby2(order, 60, [low, high], btype='bandpass')
+    b, a = cheby2(order, k, [low, high], btype='bandpass')
     return b, a
 
 #filter the data with bandpass
-def cheby2_bandpass_filter(data, lowcut, highcut, fs, order=5):
-    b, a = cheby2_bandpass(lowcut, highcut, fs, order=order)
+def cheby2_bandpass_filter(data, lowcut, highcut, fs, k, order=5):
+    b, a = cheby2_bandpass(lowcut, highcut, fs, k, order=order)
     y = lfilter(b, a, data)
     return y
 
@@ -44,8 +45,8 @@ def diff_equation(hp1, hp2, target, t_diff):
     return (np.linalg.norm(target-hp1) - np.linalg.norm(target-hp2)) - t_diff
 
 def system(target, *data):
-    hp1, hp2, hp3, hp4, diff_12, diff_23, diff_34= data
-    return (diff_equation(hp1, hp2, target, diff_12), diff_equation(hp2, hp3, target, diff_23), diff_equation(hp3, hp4, target, diff_34))
+    hp1, hp2, hp3, hp4, diff_12, diff_13, diff_34= data
+    return (diff_equation(hp1, hp2, target, diff_12), diff_equation(hp1, hp3, target, diff_13), diff_equation(hp3, hp4, target, diff_34))
 
 # need to adjust n and threshold for different data set
 def moving_average_increase(a, n = math.ceil(fs/freq)):
@@ -89,11 +90,11 @@ def moving_average_increase(a, n = math.ceil(fs/freq)):
 def find_first_window(data, avem):
     start = 0
     end = len(data) - 1
-    if avem-int(pingc*6) > start:
-        start = avem-int(pingc*6)
+    if avem-int(pingc*3) > start:
+        start = avem-int(pingc*3)
         start = int(start)
-    if avem+int(pingc) < end:
-        end = avem+int(pingc)
+    if avem+int(pingc*3) < end:
+        end = avem+int(pingc*3)
         end = int(end)
     return start, end
 
@@ -131,6 +132,28 @@ def first_window(data1, data2, data3, data4):
     avem = moving_average_max(datasq)
 
     start, end = find_first_window(datasq, avem)
+    print(start+13000, end+13000)
+
+
+    # # plt.figure()
+    # # plt.plot(data1[start:end])
+    # # plt.plot(datasq1[start:(end+1)])
+    # # stft has frequency on the y axis and time on the x axis
+    # f, t, Zxx = signal.stft(data1[start:end], fs)
+    # # index = np.where(f==3000)
+    # # print(index)
+    # plt.figure()
+    # plt.plot(t, np.absolute(Zxx[13]))
+    # plt.figure()
+    # plt.plot(t, np.angle(Zxx[13]))
+    # # plt.show()
+    # # print(f)
+    # # plt.figure()
+    # # plt.pcolormesh(t, f, np.angle(Zxx))
+    # # plt.title('STFT Magnitude')
+    # # plt.ylabel('Frequency [Hz]')
+    # # plt.xlabel('Time [sec]')
+    # plt.show()
 
     dataw1 = datasq1[start:(end+1)]
     dataw2 = datasq2[start:(end+1)]
@@ -179,18 +202,32 @@ def intp_window(datasw1, datasw2, datasw3, datasw4):
 
 def xcrr(data1_intpw, data2_intpw, data3_intpw, data4_intpw):
     xcrr_12 = correlate(data1_intpw, data2_intpw, mode = 'full')
-    xcrr_23 = correlate(data2_intpw, data3_intpw, mode = 'full')
+    xcrr_13 = correlate(data1_intpw, data3_intpw, mode = 'full')
     xcrr_34 = correlate(data3_intpw, data4_intpw, mode = 'full')
 
 # when max_xcrr is left to the center, in1 is left to in2, in1 earlier than in2, negative p_diff
     diff_12 = (np.argmax(xcrr_12) - len(data1_intpw) + 1)/(10*fs)*vsound
-    diff_23 = (np.argmax(xcrr_23) - len(data1_intpw) + 1)/(10*fs)*vsound
+    diff_13 = (np.argmax(xcrr_13) - len(data1_intpw) + 1)/(10*fs)*vsound
     diff_34 = (np.argmax(xcrr_34) - len(data1_intpw) + 1)/(10*fs)*vsound
 
-    return diff_12, diff_23, diff_34
+    return diff_12, diff_13, diff_34
 
 
 if __name__ == "__main__":
+
+    if freq == 25000:
+        bw = 1400
+        k = 10
+    elif freq == 30000:
+        bw = 1400
+        k = 20
+    elif freq == 35000:
+        bw = 2400
+        k = 60
+    # freq == 40000 and other cases
+    else:
+        bw = 1600
+        k = 60
 
     filepath = sys.argv[1]
 
@@ -200,20 +237,62 @@ if __name__ == "__main__":
     data3 = df["Channel 2"].tolist()
     data4 = df["Channel 3"].tolist()
 
-    dataf1 = cheby2_bandpass_filter(data1, freq-bw/2, freq+bw/2, fs)
-    dataf2 = cheby2_bandpass_filter(data2, freq-bw/2, freq+bw/2, fs)
-    dataf3 = cheby2_bandpass_filter(data3, freq-bw/2, freq+bw/2, fs)
-    dataf4 = cheby2_bandpass_filter(data4, freq-bw/2, freq+bw/2, fs)
+    # # plt.figure()
+    # # plt.plot(data1[start:end])
+    # # plt.plot(datasq1[start:(end+1)])
+    # # stft has frequency on the y axis and time on the x axis
+    # f, t, Zxx = signal.stft(data1[582668:597668], fs)
+    # # index = np.where(f==3000)
+    # # print(index)
+    # plt.figure()
+    # plt.plot(t, np.absolute(Zxx[13]))
+    # plt.figure()
+    # plt.plot(t, np.angle(Zxx[13]))
+    # # plt.show()
+    # # print(f)
+    # # plt.figure()
+    # # plt.pcolormesh(t, f, np.angle(Zxx))
+    # # plt.title('STFT Magnitude')
+    # # plt.ylabel('Frequency [Hz]')
+    # # plt.xlabel('Time [sec]')
+    # plt.show()
+
+    dataf1 = cheby2_bandpass_filter(data1, freq-bw/2, freq+bw/2, fs, k)
+    dataf2 = cheby2_bandpass_filter(data2, freq-bw/2, freq+bw/2, fs, k)
+    dataf3 = cheby2_bandpass_filter(data3, freq-bw/2, freq+bw/2, fs, k)
+    dataf4 = cheby2_bandpass_filter(data4, freq-bw/2, freq+bw/2, fs, k)
+
+    plt.figure()
+    plt.plot(dataf1)
+    plt.plot(dataf2)
+    plt.plot(dataf3)
+    plt.plot(dataf4)
+    plt.legend(['1', '2', '3', '4'])
+    plt.show()
 
     f_len = math.ceil(len(dataf1)/2)
-    dataf1_1 = dataf1[:f_len]
+    dataf1_1 = dataf1[13000:f_len]
     dataf1_2 = dataf1[f_len:]
-    dataf2_1 = dataf2[:f_len]
+    dataf2_1 = dataf2[13000:f_len]
     dataf2_2 = dataf2[f_len:]
-    dataf3_1 = dataf3[:f_len]
+    dataf3_1 = dataf3[13000:f_len]
     dataf3_2 = dataf3[f_len:]
-    dataf4_1 = dataf4[:f_len]
+    dataf4_1 = dataf4[13000:f_len]
     dataf4_2 = dataf4[f_len:]
+
+    # plt.figure()
+    # plt.plot(dataf1_1)
+    # plt.plot(dataf2_1)
+    # plt.plot(dataf3_1)
+    # plt.plot(dataf4_1)
+    # plt.legend(['1', '2', '3', '4'])
+    # plt.figure()
+    # plt.plot(dataf1_2)
+    # plt.plot(dataf2_2)
+    # plt.plot(dataf3_2)
+    # plt.plot(dataf4_2)
+    # plt.legend(['1', '2', '3', '4'])
+    # plt.show()
 
 
 
@@ -246,8 +325,47 @@ if __name__ == "__main__":
     # dataw3_2 = datasq3_2[start_2:(end_2+1)]
     # dataw4_2 = datasq4_2[start_2:(end_2+1)]
 
-    dataw1_1, dataw2_1, dataw3_1, dataw4_1 = first_window(dataf1_1[13000:], dataf2_1[13000:], dataf3_1[13000:], dataf4_1[13000:])
+    dataw1_1, dataw2_1, dataw3_1, dataw4_1 = first_window(dataf1_1, dataf2_1, dataf3_1, dataf4_1)
     dataw1_2, dataw2_2, dataw3_2, dataw4_2 = first_window(dataf1_2, dataf2_2, dataf3_2, dataf4_2)
+    print('length of dataw1 ', len(dataw1_1))
+
+    # plt.figure()
+    # plt.plot(dataw1_1)
+    # plt.plot(dataw2_1)
+    # plt.plot(dataw3_1)
+    # plt.plot(dataw4_1)
+    # plt.show()
+
+    # f, t, Zxx = signal.stft(dataw1_1, fs)
+    # plt.pcolormesh(t, f, np.abs(Zxx), vmin=0, vmax=3.5)
+    # plt.title('STFT Magnitude')
+    # plt.ylabel('Frequency [Hz]')
+    # plt.xlabel('Time [sec]')
+    # plt.show()
+
+    # t = np.arange(len(dataw1_1))
+    #
+    # sp = np.fft.fft(dataw1_1)
+    # freq = np.fft.fftfreq(t.shape[-1])*fs
+    # plt.figure()
+    # plt.plot(freq, np.absolute(sp))
+    # plt.figure()
+    # plt.plot(freq, np.angle(sp))
+    # plt.show()
+
+    # plt.figure()
+    # plt.plot(dataw1_1)
+    # plt.plot(dataw2_1)
+    # plt.plot(dataw3_1)
+    # plt.plot(dataw4_1)
+    # plt.legend(['2', '4'])
+    # plt.figure()
+    # plt.plot(dataw2_1)
+    # # plt.plot(dataw2_2)
+    # # plt.plot(dataw3_2)
+    # # plt.plot(dataw4_2)
+    # # plt.legend(['1', '2', '3', '4'])
+    # plt.show()
 
 
     # starts1_1, ends1_1 = moving_average_increase(dataw1_1)
@@ -279,13 +397,13 @@ if __name__ == "__main__":
     #
     # # plt.figure()
     # # plt.plot(np.absolute(dataw))
-    # # plt.figure()
-    # # plt.plot(dataw1)
-    # # plt.plot(dataw2)
-    # # plt.plot(dataw3)
-    # # plt.plot(dataw4)
-    # # plt.legend(['1', '2', '3', '4'])
-    # # plt.show()
+    # plt.figure()
+    # plt.plot(dataw1)
+    # plt.plot(dataw2)
+    # plt.plot(dataw3)
+    # plt.plot(dataw4)
+    # plt.legend(['1', '2', '3', '4'])
+    # plt.show()
     #
     #
     # # # print "aved, start, end", aved, starts, ends
@@ -333,18 +451,43 @@ if __name__ == "__main__":
 #     diff_12 = (np.argmax(xcrr_12) - len(data1_intpw) + 1)/(10*fs)*vsound
 #     diff_23 = (np.argmax(xcrr_23) - len(data1_intpw) + 1)/(10*fs)*vsound
 #     diff_34 = (np.argmax(xcrr_34) - len(data1_intpw) + 1)/(10*fs)*vsound
-    diff_12_1, diff_23_1, diff_34_1 = xcrr(data1_intpw_1, data2_intpw_1, data3_intpw_1, data4_intpw_1)
-    diff_12_2, diff_23_2, diff_34_2 = xcrr(data1_intpw_2, data2_intpw_2, data3_intpw_2, data4_intpw_2)
-    print(diff_12_1, diff_23_1, diff_34_1)
-    print(diff_12_2, diff_23_2, diff_34_2)
+    diff_12_1, diff_13_1, diff_34_1 = xcrr(data1_intpw_1, data2_intpw_1, data3_intpw_1, data4_intpw_1)
+    diff_12_2, diff_13_2, diff_34_2 = xcrr(data1_intpw_2, data2_intpw_2, data3_intpw_2, data4_intpw_2)
+    print(diff_12_1*(10*fs)/vsound, diff_13_1*(10*fs)/vsound, diff_34_1*(10*fs)/vsound)
+    print(diff_12_2*(10*fs)/vsound, diff_13_2*(10*fs)/vsound, diff_34_2*(10*fs)/vsound)
+
+    # diff_12_2 = 27/(10*fs)*vsound
+    # diff_23_2 = -62/(10*fs)*vsound
+    # diff_34_2 = 2/(10*fs)*vsound
 
     # plt.figure()
-    # plt.plot(data1_intpw)
-    # plt.plot(data2_intpw)
-    # plt.plot(data3_intpw)
-    # plt.plot(data4_intpw)
+    # plt.plot(dataf1_1)
+    # plt.plot(dataf2_1)
+    # plt.plot(dataf3_1)
+    # plt.plot(dataf4_1)
+    # plt.legend(['1', '2', '3', '4'])
+    # plt.figure()
+    # plt.plot(dataf1_2)
+    # plt.plot(dataf2_2)
+    # plt.plot(dataf3_2)
+    # plt.plot(dataf4_2)
     # plt.legend(['1', '2', '3', '4'])
     # plt.show()
+
+
+    plt.figure()
+    plt.plot(data1_intpw_1)
+    plt.plot(data2_intpw_1)
+    plt.plot(data3_intpw_1)
+    plt.plot(data4_intpw_1)
+    plt.legend(['1', '2', '3', '4'])
+    plt.figure()
+    plt.plot(data1_intpw_2)
+    plt.plot(data2_intpw_2)
+    plt.plot(data3_intpw_2)
+    plt.plot(data4_intpw_2)
+    plt.legend(['1', '2', '3', '4'])
+    plt.show()
 
     hp1 = np.array([0, 0, 0])
     hp2 = np.array([0, -spac, 0])
@@ -356,9 +499,9 @@ if __name__ == "__main__":
     # diff_34 = np.linalg.norm(target-hp3) - np.linalg.norm(target-hp4)
 
 
-    data_val_1 = (hp1, hp2, hp3, hp4, diff_12_1, diff_23_1, diff_34_1)
+    data_val_1 = (hp1, hp2, hp3, hp4, diff_12_1, diff_13_1, diff_34_1)
     solution_1 = fsolve(system, (0, 0, 0), args=data_val_1)
-    print(solution_1)
-    data_val_2 = (hp1, hp2, hp3, hp4, diff_12_2, diff_23_2, diff_34_2)
+    print("first", solution_1)
+    data_val_2 = (hp1, hp2, hp3, hp4, diff_12_2, diff_13_2, diff_34_2)
     solution_2 = fsolve(system, (0, 0, 0), args=data_val_2)
-    print(solution_2)
+    print("second", solution_2)

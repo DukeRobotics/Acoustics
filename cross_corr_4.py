@@ -230,13 +230,13 @@ if __name__ == "__main__":
     diff_34 = (np.argmax(xcrr_34) - len(data1_intpw) + 1)/(10*fs)*vsound
     print(diff_12, diff_23, diff_34)
 
-    # plt.figure()
-    # plt.plot(data1_intpw)
-    # plt.plot(data2_intpw)
-    # plt.plot(data3_intpw)
-    # plt.plot(data4_intpw)
-    # plt.legend(['1', '2', '3', '4'])
-    # plt.show()
+    plt.figure()
+    plt.plot(data1_intpw)
+    plt.plot(data2_intpw)
+    plt.plot(data3_intpw)
+    plt.plot(data4_intpw)
+    plt.legend(['1', '2', '3', '4'])
+    plt.show()
 
     hp1 = np.array([0, 0, 0])
     hp2 = np.array([0, -spac, 0])

@@ -8,44 +8,28 @@ import matplotlib.pyplot as plt
 import numpy as np
 import math
 import sys
+import saleae
 
 #sampling frequency
 fs = 625000
+#sampling time period
+ts = 3
 #number of sample taken during the ping
 pingc = fs*0.004
+#target frequency
+freq = 40000
 #speed of sound in water
 vsound = 1481
 #nipple distance between hydrophone
 spac = 0.012
 #allowed phase diff
 dphase = math.ceil(spac/vsound*fs*10)+10
+#sample per cycle
+spc = math.ceil(fs/freq)
 
-def get_quad(corrdinate):
-    if coordinate[0] > 0:
-        if coordinate[1] > 0:
-            return 1
-        else:
-            return 4
-    else:
-        if coordinate[1] > 0:
-            return 2
-        else:
-            return 3
-def get_quad_index(quad):
-    index = [0, 3, 6, 5, 4]
-    return index[quad]
+#bw = 1400
 
-def get_freq_index(freq):
-    if freq == 25000:
-        return 4
-    elif freq == 30000:
-        return 3
-    elif freq == 35000:
-        return 5
-    elif freq == 40000:
-        return 6
-
-def check_phase(diff, freq):
+def check_phase(diff):
     diff_sample = np.absolute(diff)*(10*fs)/vsound
     if diff_sample < dphase:
         return diff
@@ -77,11 +61,13 @@ def system(target, *data):
     return (diff_equation(hp1, hp2, target, diff_12), diff_equation(hp1, hp3, target, diff_13), diff_equation(hp3, hp4, target, diff_34))
 
 # need to adjust n and threshold for different data set
-def moving_average_increase(a, isLess, n):
+def moving_average_increase(a, isLess, n = spc*3):
     weights = np.repeat(1.0, n)/n
     alist = np.convolve(a, weights, 'valid')
     # even more smooth
     alist = np.convolve(alist, weights, 'valid')
+    # alist = np.convolve(alist, weights, 'valid')
+    # alist = np.convolve(alist, weights, 'valid')
     lasta = alist[0]
     start_o = 0
     end_o = 0
@@ -102,7 +88,7 @@ def moving_average_increase(a, isLess, n):
                 inc_c = alist[end] - alist[start]
                 if inc_c > inc_o:
                     inc_arr.append([start_o, end_o])
-                    [temp.append(inc) for inc in inc_arr if (alist[inc[1]] - alist[inc[0]])*3 > inc_c]
+                    [temp.append(inc) for inc in inc_arr if (alist[inc[1]] - alist[inc[0]])*5 > inc_c]
                     inc_arr = temp
                     temp = []
                     start_o = start
@@ -124,7 +110,7 @@ def moving_average_increase(a, isLess, n):
         max_d = max(d_inc)
         temp = []
         for i in range(len(d_inc)):
-            if d_inc[i]*2 > max_d:
+            if d_inc[i]*3 > max_d:
                 temp.append(inc_arr[i])
         start_o = len(alist)
         end_o = 0
@@ -132,18 +118,18 @@ def moving_average_increase(a, isLess, n):
             if inc[0] < start_o:
                 start_o = inc[0]
                 end_o = inc[1]
-        # print("inc_arr", inc_arr)
-        # print("diff", d_inc)
-        # print("temp", temp)
-    # print(start_o, end_o)
-    # plt.figure()
-    # plt.plot(a)
-    # plt.figure()
-    # plt.plot(alist)
-    # plt.show()
+        print("inc_arr", inc_arr)
+        print("diff", d_inc)
+        print("temp", temp)
+    print(start_o, end_o)
+    plt.figure()
+    plt.plot(a)
+    plt.figure()
+    plt.plot(alist)
+    plt.show()
     return start_o, end_o
 
-def find_first_window(data, avem, pingc):
+def find_first_window(data, avem):
     start = 0
     end = len(data) - 1
     if avem-int(pingc*3) > start:
@@ -154,11 +140,18 @@ def find_first_window(data, avem, pingc):
         end = int(end)
     return start, end
 
-def moving_average_max(a, n) :
+def moving_average_max(a, n = pingc) :
     weights = np.repeat(1.0, n)/n
     alist = np.convolve(a, weights, 'valid')
     maxi = np.argmax(alist)
     ratio = np.amax(alist)/np.mean(alist)
+    # maxa = 0
+    # maxi = 0
+    # for k in range(len(alist)):
+    # 	ave = alist[k]
+    # 	if ave > maxa:
+    # 	    maxa = ave
+    # 	    maxi = k
     return maxi, ratio
 
 def find_second_window(starts_arr, ends_arr):
@@ -190,6 +183,11 @@ def find_second_window(starts_arr, ends_arr):
     elif true_index.shape[1] == 3 and 0 not in count:
         return None, None, 0
     else:
+        # if true_index.shape[1] == 3 and 0 in count:
+        #     index = np.where(count == 0)
+        # elif true_index.shape[1] == 4:
+        #
+        # elif true_index.shape[1] == 5:
         # this is throwing one channel out arbitrary, should be optimized to preserve the earlier one later
         index = np.argmin(count)
         starts_arr.pop(index)
@@ -200,16 +198,16 @@ def find_second_window(starts_arr, ends_arr):
 
 
 
-def first_window(data1, data2, data3, data4, pingc):
+def first_window(data1, data2, data3, data4):
     datasq1 = np.absolute(data1)
     datasq2 = np.absolute(data2)
     datasq3 = np.absolute(data3)
     datasq4 = np.absolute(data4)
     datasq = datasq1 + datasq2 + datasq3 + datasq4
 
-    avem, ratio = moving_average_max(datasq, pingc)
+    avem, ratio = moving_average_max(datasq)
 
-    start, end = find_first_window(datasq, avem, pingc)
+    start, end = find_first_window(datasq, avem)
     print(start, end)
 
 
@@ -220,12 +218,14 @@ def first_window(data1, data2, data3, data4, pingc):
 
     return dataw1, dataw2, dataw3, dataw4, ratio
 
-def second_window(dataw1, dataw2, dataw3, dataw4, spc):
+def second_window(dataw1, dataw2, dataw3, dataw4):
     starts1, ends1 = moving_average_increase(dataw1, False, spc*5)
     starts2, ends2 = moving_average_increase(dataw2, False, spc*5)
     starts3, ends3 = moving_average_increase(dataw3, False, spc*5)
     starts4, ends4 = moving_average_increase(dataw4, False, spc*5)
     starts, ends, overlap = find_second_window([starts1, starts2, starts3, starts4], [ends1, ends2, ends3, ends4])
+    # starts = max([starts1, starts2, starts3, starts4])
+    # ends = min([ends1, ends2, ends3, ends4])
     print([starts1, starts2, starts3, starts4], [ends1, ends2, ends3, ends4])
     print(starts, ends, overlap)
 
@@ -239,7 +239,7 @@ def second_window(dataw1, dataw2, dataw3, dataw4, spc):
 
     return datasw1, datasw2, datasw3, datasw4, overlap
 
-def second_window_less(dataw1, dataw2, dataw3, dataw4, spc):
+def second_window_less(dataw1, dataw2, dataw3, dataw4):
     starts1, ends1 = moving_average_increase(dataw1, False, spc*5)
     starts2, ends2 = moving_average_increase(dataw2, False, spc*5)
     starts3, ends3 = moving_average_increase(dataw3, False, spc*5)
@@ -247,7 +247,8 @@ def second_window_less(dataw1, dataw2, dataw3, dataw4, spc):
     starts, ends, overlap = find_second_window([starts1, starts2, starts3, starts4], [ends1, ends2, ends3, ends4])
     print([starts1, starts2, starts3, starts4], [ends1, ends2, ends3, ends4])
     print(starts, ends, overlap)
-
+    # starts = max([starts1, starts2, starts3, starts4])
+    # ends = min([ends1, ends2, ends3, ends4])
 
     if not overlap:
         return None, None, None, None, 0
@@ -259,7 +260,7 @@ def second_window_less(dataw1, dataw2, dataw3, dataw4, spc):
 
     return datasw1, datasw2, datasw3, datasw4, overlap
 
-def second_window_less_less(dataw1, dataw2, dataw3, dataw4, spc):
+def second_window_less_less(dataw1, dataw2, dataw3, dataw4):
     starts1, ends1 = moving_average_increase(dataw1, True, spc*10)
     starts2, ends2 = moving_average_increase(dataw2, True, spc*10)
     starts3, ends3 = moving_average_increase(dataw3, True, spc*10)
@@ -267,6 +268,8 @@ def second_window_less_less(dataw1, dataw2, dataw3, dataw4, spc):
     starts, ends, overlap = find_second_window([starts1, starts2, starts3, starts4], [ends1, ends2, ends3, ends4])
     print([starts1, starts2, starts3, starts4], [ends1, ends2, ends3, ends4])
     print(starts, ends, overlap)
+    # starts = max([starts1, starts2, starts3, starts4])
+    # ends = min([ends1, ends2, ends3, ends4])
 
     if not overlap:
         return None, None, None, None, 0
@@ -313,18 +316,14 @@ def xcrr(data1_intpw, data2_intpw, data3_intpw, data4_intpw):
 
     return diff_12, diff_13, diff_34
 
-def get_direction_freq(freq, data1, data2, data3, data4):
-    # #target frequency
-    # freq = 25000
-    #sample per cycle
-    solution_1 = None
-    solution_2 = None
-    ratio_1 = None
-    ratio_2 = None
-    overlap_1 = None
-    overlap_2 = None
 
-    spc = math.ceil(fs/freq)
+if __name__ == "__main__":
+
+    hp1 = np.array([0, 0, 0])
+    hp2 = np.array([0, -spac, 0])
+    hp3 = np.array([-spac, 0, 0])
+    hp4 = np.array([-spac, -spac, 0])
+
 
     if freq == 25000:
         bw = 1400
@@ -339,6 +338,41 @@ def get_direction_freq(freq, data1, data2, data3, data4):
     else:
         bw = 1600
         k = 60
+
+    try:
+        s = saleae.Saleae()
+    except:
+        subprocess.Popen(["/home/robot/Logic/Logic", "-socket"], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        time.sleep(15)
+        s = saleae.Saleae()
+        print("saleae software down, open saleae software before next script run")
+        #print("software not opened or no device detected")
+        #exit()
+
+    #todo: add a while loop here to keep trying on get_active_device, timeout after 10s
+    try:
+        if s.get_active_device().active:
+            s.set_active_channels([], [0, 1, 2, 3])
+            s.set_capture_seconds(4.5)
+            s.set_sample_rate(s.get_all_sample_rates()[sampling_rate])
+    except:
+        exit()
+
+    fn = input("filename: x y z version: ").split(' ')
+
+    file_name = "625k_40k_"+fn[0]+"_"+fn[1]+"_"+fn[2]+"("+fn[3]+").csv"
+    fn = False
+    s.capture_start_and_wait_until_finished()
+    s.export_data2(os.path.join(output_path, file_name), analog_channels=[0, 1, 2, 3])
+
+    time.sleep(12)
+    print("finish sampling")
+
+    df = pandas.read_csv(os.path.join(output_path, file_name), skiprows=[1], skipinitialspace=True)
+    data1 = df["Channel 0"].tolist()
+    data2 = df["Channel 1"].tolist()
+    data3 = df["Channel 2"].tolist()
+    data4 = df["Channel 3"].tolist()
 
 
     dataf1 = cheby2_bandpass_filter(data1, freq-bw/2, freq+bw/2, fs, k)
@@ -358,8 +392,8 @@ def get_direction_freq(freq, data1, data2, data3, data4):
     dataf4_2 = dataf4[f_len:]
 
 
-    dataw1_1, dataw2_1, dataw3_1, dataw4_1, ratio_1 = first_window(dataf1_1, dataf2_1, dataf3_1, dataf4_1, pingc)
-    dataw1_2, dataw2_2, dataw3_2, dataw4_2, ratio_2 = first_window(dataf1_2, dataf2_2, dataf3_2, dataf4_2, pingc)
+    dataw1_1, dataw2_1, dataw3_1, dataw4_1, ratio_1 = first_window(dataf1_1, dataf2_1, dataf3_1, dataf4_1)
+    dataw1_2, dataw2_2, dataw3_2, dataw4_2, ratio_2 = first_window(dataf1_2, dataf2_2, dataf3_2, dataf4_2)
     print(ratio_1, ratio_2)
 
     # plt.figure()
@@ -370,21 +404,20 @@ def get_direction_freq(freq, data1, data2, data3, data4):
     # plt.legend(['1', '2', '3', '4'])
     # plt.show()
 
-
     if ratio_1 > 3:
         if ratio_1 > 10:
-            datasw1_1, datasw2_1, datasw3_1, datasw4_1, overlap_1 = second_window(dataw1_1, dataw2_1, dataw3_1, dataw4_1, spc)
+            datasw1_1, datasw2_1, datasw3_1, datasw4_1, overlap_1 = second_window(dataw1_1, dataw2_1, dataw3_1, dataw4_1)
         elif ratio_1 > 5:
-            datasw1_1, datasw2_1, datasw3_1, datasw4_1, overlap_1 = second_window_less(dataw1_1, dataw2_1, dataw3_1, dataw4_1, spc)
+            datasw1_1, datasw2_1, datasw3_1, datasw4_1, overlap_1 = second_window_less(dataw1_1, dataw2_1, dataw3_1, dataw4_1)
         else:
-            datasw1_1, datasw2_1, datasw3_1, datasw4_1, overlap_1 = second_window_less_less(dataw1_1, dataw2_1, dataw3_1, dataw4_1, spc)
+            datasw1_1, datasw2_1, datasw3_1, datasw4_1, overlap_1 = second_window_less_less(dataw1_1, dataw2_1, dataw3_1, dataw4_1)
         if overlap_1:
             data1_intpw_1, data2_intpw_1, data3_intpw_1, data4_intpw_1 = intp_window(datasw1_1, datasw2_1, datasw3_1, datasw4_1)
             diff_12_1, diff_13_1, diff_34_1 = xcrr(data1_intpw_1, data2_intpw_1, data3_intpw_1, data4_intpw_1)
             print("12", diff_12_1*(10*fs)/vsound, "13", diff_13_1*(10*fs)/vsound, "34", diff_34_1*(10*fs)/vsound)
-            diff_12_1 = check_phase(diff_12_1, freq)
-            diff_13_1 = check_phase(diff_13_1, freq)
-            diff_34_1 = check_phase(diff_34_1, freq)
+            diff_12_1 = check_phase(diff_12_1)
+            diff_13_1 = check_phase(diff_13_1)
+            diff_34_1 = check_phase(diff_34_1)
             if not(diff_12_1 is None or diff_13_1 is None or diff_34_1 is None):
                 data_val_1 = (hp1, hp2, hp3, hp4, diff_12_1, diff_13_1, diff_34_1)
                 solution_1 = fsolve(system, (0, 0, -9), args=data_val_1)
@@ -398,18 +431,18 @@ def get_direction_freq(freq, data1, data2, data3, data4):
 
     if ratio_2 > 3:
         if ratio_2 > 10:
-            datasw1_2, datasw2_2, datasw3_2, datasw4_2, overlap_2 = second_window(dataw1_2, dataw2_2, dataw3_2, dataw4_2, spc)
+            datasw1_2, datasw2_2, datasw3_2, datasw4_2, overlap_2 = second_window(dataw1_2, dataw2_2, dataw3_2, dataw4_2)
         elif ratio_2 > 5:
-            datasw1_2, datasw2_2, datasw3_2, datasw4_2, overlap_2 = second_window_less(dataw1_2, dataw2_2, dataw3_2, dataw4_2, spc)
+            datasw1_2, datasw2_2, datasw3_2, datasw4_2, overlap_2 = second_window_less(dataw1_2, dataw2_2, dataw3_2, dataw4_2)
         else:
-            datasw1_2, datasw2_2, datasw3_2, datasw4_2, overlap_2 = second_window_less_less(dataw1_2, dataw2_2, dataw3_2, dataw4_2, spc)
+            datasw1_2, datasw2_2, datasw3_2, datasw4_2, overlap_2 = second_window_less_less(dataw1_2, dataw2_2, dataw3_2, dataw4_2)
         if overlap_2:
             data1_intpw_2, data2_intpw_2, data3_intpw_2, data4_intpw_2 = intp_window(datasw1_2, datasw2_2, datasw3_2, datasw4_2)
             diff_12_2, diff_13_2, diff_34_2 = xcrr(data1_intpw_2, data2_intpw_2, data3_intpw_2, data4_intpw_2)
             print("12", diff_12_2*(10*fs)/vsound, "13", diff_13_2*(10*fs)/vsound, "34", diff_34_2*(10*fs)/vsound)
-            diff_12_2 = check_phase(diff_12_2, freq)
-            diff_13_2 = check_phase(diff_13_2, freq)
-            diff_34_2 = check_phase(diff_34_2, freq)
+            diff_12_2 = check_phase(diff_12_2)
+            diff_13_2 = check_phase(diff_13_2)
+            diff_34_2 = check_phase(diff_34_2)
             if not(diff_12_2 is None or diff_13_2 is None or diff_34_2 is None):
                 data_val_2 = (hp1, hp2, hp3, hp4, diff_12_2, diff_13_2, diff_34_2)
                 solution_2 = fsolve(system, (0, 0, -9), args=data_val_2)
@@ -420,114 +453,3 @@ def get_direction_freq(freq, data1, data2, data3, data4):
             print("eliminate data2, overlap check")
     else:
         print("eliminate data2")
-
-    return solution_1, ratio_1, overlap_1, solution_2, ratio_2, overlap_2
-
-
-
-if __name__ == "__main__":
-
-    hp1 = np.array([0, 0, 0])
-    hp2 = np.array([0, -spac, 0])
-    hp3 = np.array([-spac, 0, 0])
-    hp4 = np.array([-spac, -spac, 0])
-
-    filepath = sys.argv[1]
-    freq_cur = int(sys.argv[2])
-
-    df = pandas.read_csv(filepath, skiprows=[1], skipinitialspace=True)
-    data1 = df["Channel 0"].tolist()
-    data2 = df["Channel 1"].tolist()
-    data3 = df["Channel 2"].tolist()
-    data4 = df["Channel 3"].tolist()
-
-    direction_arr = []
-
-    if freq_cur == 30000:
-        freq_arr = [30000, 40000, 35000, 25000]
-        quad_c = False
-    elif freq_cur == 25000:
-        freq_arr = [25000, 35000, 40000, 30000]
-        quad_c = True
-    elif freq_cur == 40000:
-        freq_arr = [40000, 30000, 25000, 35000]
-        quad_c = True
-    elif freq_cur == 35000:
-        freq_arr = [35000, 25000, 30000, 40000]
-        quad_c = False
-
-    count = 0
-    for freq in freq_arr:
-        print("\nfreq is {}\n".format(freq))
-        solution_1, ratio_1, overlap_1, solution_2, ratio_2, overlap_2= get_direction_freq(freq, data1, data2, data3, data4)
-        if solution_1 is not None:
-            direction_arr.append([freq, solution_1, ratio_1, overlap_1])
-            i = i + 1
-        if solution_2 is not None:
-            if freq != freq_cur:
-                direction_arr.append([freq, solution_2, ratio_2, overlap_2, get_quad(solution_2)])
-            else:
-                freq_cur_arr.append([solution_2, ratio_2, overlap_2, get_quad(solution_2)])
-
-
-    print(direction_arr)
-
-    quadrant_arr = [4, 3, 2, 1, 4, 3, 2, 1, 4, 3]
-    freq_arr = [25000, 35000, 40000, 30000, 25000, 35000, 40000, 30000, 25000, 35000]
-
-    pattern = [[0, 0, 1, 1], [0, 0, 1, 2], [0, 0, 2, 2], [0, 1, 2, 2], [0, 1, 2, 3]]
-    if freq_cur == 30000 or freq_cur == 25000:
-        quad_c = False
-        freq_c = False
-    elif freq_cur == 40000 or freq_cur == 35000:
-        quad_c = True
-        freq_c = True
-
-    if freq_c:
-        next_freq == freq_arr[get_freq_index(freq_cur)]
-
-    possible_pattern = []
-    if len(freq_cur_arr) > 1:
-        if freq_cur_arr[0][3] != freq_cur_arr[1][3]:
-
-        if freq_cur_arr[0][2] > freq_cur_arr[1][2]:
-            freq_cur_p = freq_cur_arr[0]
-        elif freq_cur_arr[0][2] < freq_cur_arr[1][2]:
-            freq_cur_p = freq_cur_arr[1]
-        else:
-            if freq_cur_arr[0][1] > freq_cur_arr[1][1]:
-                freq_cur_p = freq_cur_arr[0]
-            else:
-                freq_cur_p = freq_cur_arr[1]
-    else:
-        freq_cur_p = freq_cur_arr[0]
-
-    quad
-
-
-
-
-    # in 30k, 30k 1st, 40k 1st, 35k 2nd, 25k 2nd
-    # in 30k, 30k 1st, 40k 1st, 35k 2nd, 25k 3rd
-    # in 30k, 30k 1st, 40k 1st, 35k 3rd, 25k 3rd
-    # in 30k, 30k 1st, 40k 2nd, 35k 3rd, 25k 3rd
-    # in 30k, 30k 1st, 40k 2nd, 35k 3rd, 25k 4th
-    # just rotate for other quadrant
-
-    # in 40k, 40k 1st, 30k 1st, 25k 4th, 35k 4th
-    # in 40k, 40k 1st, 30k 1st, 25k 4th, 35k 3rd
-    # in 40k, 40k 1st, 30k 1st, 25k 3rd, 35k 3rd
-    # in 40k, 40k 1st, 30k 4th, 25k 3rd, 35k 3rd
-    # in 40k, 40k 1st, 30k 4th, 25k 3rd, 35k 2nd
-
-    # in 25k, 25k 1st, 35k 1st, 40k 4th, 30k 4th
-    # in 25k, 25k 1st, 35k 1st, 40k 4th, 30k 3rd
-    # in 25k, 25k 1st, 35k 1st, 40k 3rd, 30k 3rd
-    # in 25k, 25k 1st, 35k 4th, 40k 3rd, 30k 3rd
-    # in 25k, 25k 1st, 35k 4th, 40k 3rd, 30k 2nd
-
-    # in 35k, 35k 1st, 25k 1st, 30k 2nd, 40k 2nd
-    # in 35k, 35k 1st, 25k 1st, 30k 2nd, 40k 3rd
-    # in 35k, 35k 1st, 25k 1st, 30k 3rd, 40k 3rd
-    # in 35k, 35k 1st, 25k 2nd, 30k 3rd, 40k 3rd
-    # in 35k, 35k 1st, 25k 2nd, 30k 3rd, 40k 4th

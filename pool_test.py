@@ -72,7 +72,7 @@ if __name__ == "__main__":
         file_name = "625k_40k_"+fn[0]+"_"+fn[1]+"_"+fn[2]+"("+fn[3]+").csv"
         fn = False
         s.capture_start_and_wait_until_finished()
-        s.export_data2(output_path+file_name, analog_channels=[0, 1, 2, 3])
+        s.export_data2(os.path.join(output_path, file_name), analog_channels=[0, 1, 2, 3])
 
         time.sleep(12)
         print("finish sampling")

@@ -29,22 +29,48 @@ fft_w_size = 125
 
 bw = 1600*3
 
+check_len = 20
+
+gx = 4
+gy = -5
+gz = -4
+
+hp1 = np.array([0, 0, 0])
+hp2 = np.array([0, -spac, 0])
+hp3 = np.array([-spac, 0, 0])
+hp4 = np.array([-spac, -spac, 0])
+# hp2 = np.array([-spac/2, -np.sqrt(3)*spac/2, 0])
+# hp3 = np.array([-spac, 0, 0])
+# hp4 = np.array([-np.sqrt(3)*spac/4, -spac/2, -3*spac/4])
+
 def get_pdiff(parr1, parr2, start, end):
-    pdlist = correct_phase(np.subtract(parr2, parr1))
-    var = variance_list(pdlist, int(pingc/fft_w_size/2))
-    phase_start = moving_average_min(var[start:end])+start
+    pdllist = np.subtract(parr2, parr1)
+    pdlist = correct_phase(pdllist[start:end])
+    # pdlist = large_window(pdslist)
+    var = variance_list(pdlist, int(len(pdlist)/5))
+    # var = variance_list(pdlist, int(len(pdlist)/3))
+    phase_start = np.argmin(var)
     # check if lowest variance align with max mag interval, if not then bad data
-    if abs(phase_start - start) > 5:
+    print("phase start", phase_start+start)
+    print("start", start)
+    plt.figure()
+    plt.plot(correct_phase(pdllist))
+    plt.title("phase diff")
+    plt.show()
+    if phase_start > len(pdlist)/2:
+    # if phase_start > len(pdlist)/3*2:
         return None
-    phase_end = phase_start+int(pingc/fft_w_size)
-    pdiff = np.mean(correct_phase(pdlist[phase_start:phase_end]))
-    # print("phase start", phase_start)
-    # print("phase end", phase_end)
-    # plt.figure()
-    # plt.plot(pdlist)
-    # plt.title("phase diff")
-    # plt.show()
+    phase_end = phase_start+int(len(pdlist)/5)
+    # phase_end = phase_start+int(len(pdlist)/3)
+    pdiff = np.mean(pdlist[phase_start:phase_end])
     return pdiff
+
+def large_window(pdlist):
+    result = []
+    r = math.ceil(len(pdlist)/5)
+    for i in range(len(pdlist) - r+1):
+        result.append(np.mean(pdlist[i:i+r]))
+    return result
 
 def correct_phase(arr):
     result = []
@@ -73,7 +99,7 @@ def moving_average_max(a, n = int(pingc/fft_w_size)) :
     	    maxi = k
     return maxi
 
-def moving_average_min(a, n = int(pingc/fft_w_size) - int(pingc/fft_w_size/2)) :
+def moving_average_min(a, n = int(pingc/fft_w_size/10)) :
     weights = np.repeat(1.0, n)/n
     alist = np.convolve(a, weights, 'valid')
     mina = sys.maxsize
@@ -113,10 +139,6 @@ def system(target, *data):
     return (diff_equation(hp1, hp2, target, diff_12), diff_equation(hp1, hp3, target, diff_13), diff_equation(hp3, hp4, target, diff_34))
 
 def solver(guess, diff12, diff13, diff34):
-    hp1 = np.array([0, 0, 0])
-    hp2 = np.array([0, -spac, 0])
-    hp3 = np.array([-spac, 0, 0])
-    hp4 = np.array([-spac, -spac, 0])
     data_val = (hp1, hp2, hp3, hp4, diff12, diff13, diff34)
     solution = fsolve(system, guess, args=data_val)
     return solution
@@ -128,6 +150,7 @@ def data_to_pdiff(data1, data2, data3, data4):
     plist4, mlist4 = fft(data4, freq, fft_w_size)
     # plt.figure()
     # plt.plot(mlist1)
+    # plt.title("magnitude")
     # plt.show()
 
     # maxi1 = moving_average_max(mlist1)
@@ -157,6 +180,18 @@ def read_data(filepath):
 
     return data1, data2, data3, data4
 
+def check_angle(hz, vt):
+    pinger = np.array([check_len*np.cos(vt)*np.cos(hz), check_len*np.cos(vt)*np.sin(hz), -check_len*np.sin(vt)])
+    dis1 = np.linalg.norm(pinger-hp1)
+    dis2 = np.linalg.norm(pinger-hp2)
+    dis3 = np.linalg.norm(pinger-hp3)
+    dis4 = np.linalg.norm(pinger-hp4)
+    pd12 = (dis1 - dis2)/vsound*freq*2*np.pi
+    pd13 = (dis1 - dis3)/vsound*freq*2*np.pi
+    pd34 = (dis3 - dis4)/vsound*freq*2*np.pi
+
+    return pd12, pd13, pd34
+
 def plot_3d(ccwh, downv):
     if abs(ccwh) < np.pi/2:
         xline = np.linspace(0, 10, 100)
@@ -180,6 +215,10 @@ if __name__ == "__main__":
 
     ccwha = []
     downva = []
+    xa = []
+    ya = []
+    za = []
+    count = 0
     for i in range(4):
         # data1, data2, data3, data4 = read_data(filepath.replace(".csv", str(i+1)+".csv"))
         data1, data2, data3, data4 = read_data(filepath.replace(".csv", "("+str(i+1)+").csv"))
@@ -201,14 +240,18 @@ if __name__ == "__main__":
             print("\npdiff_12", pdiff12, "pdiff_13", pdiff13, "pdiff_34", pdiff34, "\n")
 
             if (pdiff12 is not None) and (pdiff13 is not None) and (pdiff34 is not None):
+                count = count + 1
                 diff12 = pdiff12/2/np.pi*vsound/freq
                 diff13 = pdiff13/2/np.pi*vsound/freq
                 diff34 = pdiff34/2/np.pi*vsound/freq
 
-                guess = (3, -3, -4)
+                guess = (gx, gy, gz)
                 # guess = (-1, 1, -3)
                 # solution = solver(guess, diff12, diff13, diff34)
                 x, y, z = solver(guess, diff12, diff13, diff34)
+                xa.append(x)
+                ya.append(y)
+                za.append(z)
                 print("initial guess", guess)
                 print("x, y, z", x, y, z)
                 ccwh = np.arctan2(y, x)
@@ -217,11 +260,20 @@ if __name__ == "__main__":
                 downv = np.arctan2(-z, np.sqrt(x**2 + y**2))
                 downva.append(downv)
                 print("vertical downward angle", downv/np.pi*180, "\n")
+                pd12, pd13, pd34 = check_angle(ccwh, downv)
+                print("check pd", pd12, pd13, pd34, "\n")
+                print("pdiff_12", pdiff12, "pdiff_13", pdiff13, "pdiff_34", pdiff34, "\n")
 
+
+    print("success count: ", count, "\n")
     plt.figure()
     ax = plt.axes(projection='3d')
     # ax.scatter3D([-1], [1], [-3]);
-    ax.scatter3D([3], [-3], [-4]);
+    ax.scatter3D([gx], [gy], [gz], color="b");
+    #ax.scatter3D([xa], [ya], [za], color="r");
+    ax.set_xlabel('X Label')
+    ax.set_ylabel('Y Label')
+    ax.set_zlabel('Z Label')
     for i in range(len(ccwha)):
         plot_3d(ccwha[i], downva[i])
     plt.show()

@@ -8,7 +8,7 @@ Database is stored in Box folder, `hydrophone_data`, and a hard drive at lab. Pl
 ----
 ## Nomenclature
 - Currently all dataset were taken with a square array configuration (under `/square_array` folder). For future datasets taken with different hydrophone array configuration, please create new directories and put datasets under corresponding folders.
-  - In the square array configuration, the 1st hydrophone (h0) would be at the origin; the 2nd hydrophone (h1) would be on the negative x-axis; the 3rd hydrophone (h2) would be on the negative y-axis; the 4th hydrophone (h3) would be in the third quadrant with negative x and y coordinates
+  - In the square array configuration, the 1st hydrophone (h0) would be at the origin; the 2nd hydrophone (h1) would be on the negative y-axis; the 3rd hydrophone (h2) would be on the negative x-axis; the 4th hydrophone (h3) would be in the third quadrant with negative x and y coordinates
 - `\transdec` directory contains dataset from Transdec pool; `wilson_pool` directory contains dataset from Wilson diving pool (for less reflection off the wall)
 - Datasets with file name starting with `1s` or `3s` are timing datasets taken to study the time interval between pings. They are likely to contain no direction information as the mount/robot might be unstable during recording.
   - `1s` and `3s` represent the time length of dataset
@@ -18,7 +18,7 @@ Database is stored in Box folder, `hydrophone_data`, and a hard drive at lab. Pl
   - 1st term represents the sampling rate
   - 2nd term represents the target frequency
   - 3rd, 4th and 5th terms represent the relative direction of sound source to hydrophone array.
-    - It follows the format of `x_y_z`, relative to coordinate system origin; h0 is the origin; h1 is on negative x-axis; h2 is on negative y-axis, h3 is in third quadrant.
+    - It follows the format of `x_y_z`, relative to coordinate system origin; h0 is the origin; h1 is on negative y-axis; h2 is on negative x-axis, h3 is in third quadrant.
     - For z-direction, negative axis points down
     - All coordinates information marked in file name were estimated, therefore the accuracy can only be guaranteed to be +-22.5 degree (1/8 pi)
     - Some coordinate information might be associated with units when recorded(inch or meter). However, since there isn't a guaranteed uniform unit, we consider all coordinate information to be unitless, providing only directional information.

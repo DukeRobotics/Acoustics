@@ -1,5 +1,6 @@
 .Rhistory
 .DS_Store
+.idea
 *.csv
 test
 testcsv

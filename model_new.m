@@ -33,6 +33,9 @@ k = 0;
     pz = -sqrt(38^2*(1 - px^2/150^2 - py^2/100^2));
 
     % hydrophone location, estimation, pointing pos_x direction
+    % bot in the top right quadrant in transdec, array mounted on the bot
+    % with pinger at the far end, bot just started off the starting deck
+    % if not sure about the array location simulated here, ask old members
     hx1 = 150/3;
     hy1 = 100/4*3;
     hz1 = -2;
@@ -81,12 +84,12 @@ k = 0;
     p13 = p1s - p3s;
     p34 = p3s - p4s;
     pd = [p12, p13, p34];
-    
+
     off1 = p1s - dis1/v_sound*fs+13000*3;
     off2 = p2s - dis2/v_sound*fs+13000*3;
     off3 = p3s - dis3/v_sound*fs+13000*3;
     off4 = p4s - dis4/v_sound*fs+13000*3;
-    
+
     s = 1:0.004*fs;
     pingoff1 = (0.1*sin((s+off1)/fs*ft*2*pi))';
     pingoff2 = (0.1*sin((s+off2)/fs*ft*2*pi))';
@@ -107,7 +110,7 @@ k = 0;
     h2 = ping2+wgn(sample, 1, nl);
     h3 = ping3+wgn(sample, 1, nl);
     h4 = ping4+wgn(sample, 1, nl);
-    
+
 %end
 % h1 = ping1;
 % h2 = ping2;
@@ -118,7 +121,7 @@ k = 0;
 % function result = wall(x, y, z)
 %     result = x^2/150^2 + y^2/100^2 + z^2/38^2;
 % end
-% 
+%
 t = table(h1, h2, h3, h4);
 t.Properties.VariableNames = {'Channel0' 'Channel1' 'Channel2' 'Channel3'};
 writetable(t, '/Users/estellehe/Documents/senior/IndepStudy/matlab_76_4.csv');
@@ -126,4 +129,3 @@ writetable(t, '/Users/estellehe/Documents/senior/IndepStudy/matlab_76_4.csv');
 function result = dis(x, y, z, x1, y1, z1)
     result = sqrt((x-x1)^2 + (y-y1)^2 + (z-z1)^2);
 end
-

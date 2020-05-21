@@ -28,7 +28,10 @@ large_window_portion = 5
 
 guess = (0, 0, -10)
 
-hp = [np.array([0, 0, 0]), np.array([0, -spac, 0]), np.array([-spac, 0, 0]), np.array([-spac, -spac, 0])]
+hp = [np.array([0, 0, 0]),
+      np.array([0, -spac, 0]),
+      np.array([-spac, 0, 0]),
+      np.array([-spac, -spac, 0])]
 # potential future configuration
 # hp2 = np.array([-spac/2, -np.sqrt(3)*spac/2, 0])
 # hp3 = np.array([-spac, 0, 0])
@@ -38,8 +41,8 @@ hp = [np.array([0, 0, 0]), np.array([0, -spac, 0]), np.array([-spac, 0, 0]), np.
 def get_pdiff(parr1, parr2, start, end):
     pdllist = np.subtract(parr2, parr1)
     pdlist = correct_phase(pdllist[start:end])
-    # pdlist = large_window(pdslist, np.ceil(len(pdlist)/large_window_portion))
     var = variance_list(pdlist, len(pdlist)//large_window_portion)
+    # var = variance_list(pdlist, int(len(pdlist)/3))
     phase_start = np.argmin(var)
     # check if lowest variance align with max mag interval, if not then bad data
     # print("phase start", phase_start+start)
@@ -53,9 +56,6 @@ def get_pdiff(parr1, parr2, start, end):
         return None
     phase_end = phase_start + len(pdlist)//large_window_portion
     return np.mean(pdlist[phase_start:phase_end])
-
-def large_window(pdlist, r):
-    return [np.mean(pdlist[i:i+r]) for i in range(len(pdlist) - r + 1)]
 
 def reduce_phase(phase):
     return -phase/abs(phase)*(2*np.pi-abs(phase))
@@ -74,9 +74,6 @@ def get_alist(a, n):
 
 def moving_average_max(a, n = int(pingc/fft_w_size)):
     return np.argmax(get_alist(a, n))
-
-def moving_average_min(a, n = int(pingc/fft_w_size/10)):
-    return np.argmin(get_alist(a, n))
 
 def fft(xn, freq, w_size):
     ft = []
@@ -173,7 +170,7 @@ def cross_corr_func(filename, if_double, version, if_plot, samp_f=fs, tar_f=freq
         data = [split_data(d) if if_double else [d] for d in raw_data]
 
         for j in range(len(data[0])):
-            pdiff = data_to_pdiff(data)
+            pdiff = data_to_pdiff(data[:, j])
 
             if None not in pdiff:
                 count += 1

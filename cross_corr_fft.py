@@ -153,6 +153,37 @@ def final_hz_angle(hz_arr):
     ave = [q for q in quadrant if len(q) == max_len]
     return np.mean(ave)
 
+def process_data(raw_data, if_double, actual, ccwha, downva, count):
+    data = [split_data(d) if if_double else [d] for d in raw_data]
+
+    for j in range(len(data[0])):
+        pdiff = data_to_pdiff(data[:, j])
+
+        if None not in pdiff:
+            count += 1
+            diff = [(val / 2 / np.pi * vsound / freq) for val in pdiff]
+
+            ans = solver(guess, diff)[0]
+            x, y, z = ans[0], ans[1], ans[2]
+            actual.append((x, y, z))
+            print("initial guess", guess)
+            print("x, y, z", actual[-1])
+
+            # calculate angle
+            ccwh = np.arctan2(y, x)
+            ccwha.append(ccwh)
+            print("horizontal angle", np.rad2deg(ccwh))
+            downv = np.arctan2(-z, np.sqrt(x ** 2 + y ** 2))
+            downva.append(downv)
+            print("vertical downward angle", np.rad2deg(downv), "\n")
+
+            # compare solver result with pdiff from data
+            pd = check_angle(ccwh, downv)
+            print("checked pd", pd[0], pd[1], pd[2], "\n")
+            print("pdiff_12", pdiff[0], "pdiff_13", pdiff[1], "pdiff_34", pdiff[2], "\n")
+    return actual, ccwha, downva, count
+
+
 def cross_corr_func(filename, if_double, version, if_plot, samp_f=fs, tar_f=freq, guess_x=guess[0], guess_y=guess[1], guess_z=guess[2]):
     global fs, freq, guess
     fs = samp_f
@@ -165,35 +196,13 @@ def cross_corr_func(filename, if_double, version, if_plot, samp_f=fs, tar_f=freq
     actual = []
     count = 0
 
+    if(version == 0):
+        raw_data = read_data(filepath)
+        actual, ccwha, downva, count = process_data(raw_data, if_double, actual, ccwha, downva, count)
+
     for i in range(version):
         raw_data = read_data(filepath.replace(".csv", "("+str(i+1)+").csv"))
-        data = [split_data(d) if if_double else [d] for d in raw_data]
-
-        for j in range(len(data[0])):
-            pdiff = data_to_pdiff(data[:, j])
-
-            if None not in pdiff:
-                count += 1
-                diff = [(val/2/np.pi*vsound/freq) for val in pdiff]
-
-                ans = solver(guess, diff)[0]
-                x, y, z = ans[0], ans[1], ans[2]
-                actual.append((x, y, z))
-                print("initial guess", guess)
-                print("x, y, z", actual[-1])
-
-                # calculate angle
-                ccwh = np.arctan2(y, x)
-                ccwha.append(ccwh)
-                print("horizontal angle", np.rad2deg(ccwh))
-                downv = np.arctan2(-z, np.sqrt(x**2 + y**2))
-                downva.append(downv)
-                print("vertical downward angle", np.rad2deg(downv), "\n")
-
-                # compare solver result with pdiff from data
-                pd = check_angle(ccwh, downv)
-                print("checked pd", pd[0], pd[1], pd[2], "\n")
-                print("pdiff_12", pdiff[0], "pdiff_13", pdiff[1], "pdiff_34", pdiff[2], "\n")
+        actual, ccwha, downva, count = process_data(raw_data, if_double, actual, ccwha, downva, count)
 
     final_ccwh = final_hz_angle(ccwha)
     print("\n\nfinal horizontal angle", np.rad2deg(final_ccwh))

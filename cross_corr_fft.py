@@ -196,7 +196,7 @@ def cross_corr_func(filename, if_double, version, if_plot, samp_f=fs, tar_f=freq
     actual = []
     count = 0
 
-    if(version == 0):
+    if version == 0:
         raw_data = read_data(filepath)
         actual, ccwha, downva, count = process_data(raw_data, if_double, actual, ccwha, downva, count)
 

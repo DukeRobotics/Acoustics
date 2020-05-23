@@ -2,9 +2,9 @@ import os
 import saleae
 import argparse
 
-def validate_path( path, argument_name ):
-    if path != None:
-        if os.path.isdir(path) == False:
+def validate_path(path, argument_name):
+    if path is not None:
+        if not os.path.isdir(path):
             print('the specified ' + argument_name + ' directory does not exist or is invalid')
             print('you specified: ' + path)
             quit()

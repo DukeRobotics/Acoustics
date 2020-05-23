@@ -1,27 +1,14 @@
 import saleae
 import subprocess
 import time
-import sys
-import os.path
 
 # 2 = 1250 kS/s, 3 = 625 kS/s, 4 = 125 kS/s
+rates = {2: 1250000, 3: 625000, 4: 125000}
 sampling_rate = 3
-fs = 625000
-pingc = pingc = fs*0.004
+fs = rates[sampling_rate]
+pingc = fs*0.004
 
 output_path = "/home/estellehe/Desktop/output/"
-
-def moving_average_max(a, n = pingc) :
-    weights = np.repeat(1.0, n)/n
-    alist = np.convolve(a, weights, 'valid')
-    maxa = 0
-    maxi = 0
-    for k in range(len(alist)):
-    	ave = alist[k]
-    	if ave > maxa:
-    	    maxa = ave
-    	    maxi = k
-    return maxi
 
 if __name__ == "__main__":
     try:
@@ -40,15 +27,11 @@ if __name__ == "__main__":
     except:
         exit()
 
-
-    fn = False
     fn = input("filename: x y z version: ").split(' ')
-    while(fn):
+    while fn:
         file_name = "625k_40k_"+fn[0]+"_"+fn[1]+"_"+fn[2]+"("+fn[3]+").csv"
-        fn = False
         s.capture_start_and_wait_until_finished()
         s.export_data2(output_path+file_name, analog_channels=[0, 1, 2, 3])
-
         time.sleep(10)
         print("finish sampling")
         fn = input("filename: x y z version: ").split(' ')

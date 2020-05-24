@@ -4,6 +4,7 @@
 import pandas
 from scipy.optimize import fsolve
 import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
 import numpy as np
 import sys
 
@@ -41,7 +42,7 @@ hp = [np.array([0, 0, 0]),
 def get_pdiff(parr1, parr2, start, end):
     pdllist = np.subtract(parr2, parr1)
     pdlist = correct_phase(pdllist[start:end])
-    var = variance_list(pdlist, len(pdlist)//large_window_portion)
+    var = variance_list(pdlist, int(len(pdlist)//large_window_portion))
     # var = variance_list(pdlist, int(len(pdlist)/3))
     phase_start = np.argmin(var)
     # check if lowest variance align with max mag interval, if not then bad data
@@ -54,7 +55,7 @@ def get_pdiff(parr1, parr2, start, end):
     # THIS REQUIREMENT CAN BE LOSEN IF TOO MANY PINGS ARE INVALID, YET MIGHT LEAD TO INACCURATE RESULT. Change 2 to 1.5.
     if phase_start > len(pdlist)/2:
         return None
-    phase_end = phase_start + len(pdlist)//large_window_portion
+    phase_end = phase_start + int(len(pdlist)//large_window_portion)
     return np.mean(pdlist[phase_start:phase_end])
 
 def reduce_phase(phase):
@@ -77,7 +78,7 @@ def moving_average_max(a, n = int(pingc/fft_w_size)):
 
 def fft(xn, freq, w_size):
     ft = []
-    for i in range(len(xn)//w_size):
+    for i in range(int(len(xn)//w_size)):
         xn_s = xn[i*w_size:(i+1)*w_size]
         ft.append(fft_sw(xn_s, freq))
     return np.angle(ft), np.absolute(ft)
@@ -105,7 +106,7 @@ def data_to_pdiff(data):
     plist_all, mlist_all = zip(*[fft(d, freq, fft_w_size) for d in data])
     mlist = np.sum(mlist_all, axis=0)
     mag_start = moving_average_max(mlist)
-    mag_end = mag_start + pingc//fft_w_size
+    mag_end = mag_start + int(pingc//fft_w_size)
     return apply_to_pairs(lambda p1, p2: get_pdiff(p1, p2, mag_start, mag_end), plist_all)
 
 def read_data(filepath):
@@ -133,7 +134,7 @@ def plot_3d(ccwh, downv, ax):
 def plot(ccwha, downva, count, actual):
     print("\nsuccess count: ", count, "\n")
     fig = plt.figure()
-    ax = fig.gca(projection='3d')
+    ax = Axes3D(fig)
     ax.scatter3D([guess[0]], [guess[1]], [guess[2]], color="b")
     # ax.scatter3D([val[0] for val in actual], [val[1] for val in actual], [val[2] for val in actual], color="r")
     ax.set_xlabel('X Label')
@@ -154,7 +155,7 @@ def final_hz_angle(hz_arr):
     return np.mean(ave)
 
 def process_data(raw_data, if_double, actual, ccwha, downva, count):
-    data = [split_data(d) if if_double else [d] for d in raw_data]
+    data = np.array([split_data(d) if if_double else [d] for d in raw_data])
 
     for j in range(len(data[0])):
         pdiff = data_to_pdiff(data[:, j])
@@ -163,7 +164,7 @@ def process_data(raw_data, if_double, actual, ccwha, downva, count):
             count += 1
             diff = [(val / 2 / np.pi * vsound / freq) for val in pdiff]
 
-            ans = solver(guess, diff)[0]
+            ans = solver(guess, diff)
             x, y, z = ans[0], ans[1], ans[2]
             actual.append((x, y, z))
             print("initial guess", guess)
@@ -179,8 +180,10 @@ def process_data(raw_data, if_double, actual, ccwha, downva, count):
 
             # compare solver result with pdiff from data
             pd = check_angle(ccwh, downv)
-            print("checked pd", pd[0], pd[1], pd[2], "\n")
+            print("checked pd", pd[0], pd[1], pd[2])
             print("pdiff_12", pdiff[0], "pdiff_13", pdiff[1], "pdiff_34", pdiff[2], "\n")
+        else:
+            print("invalid\n")
     return actual, ccwha, downva, count
 
 
@@ -211,4 +214,10 @@ def cross_corr_func(filename, if_double, version, if_plot, samp_f=fs, tar_f=freq
         plot(ccwha, downva, count, actual)
 
 if __name__ == "__main__":
-    cross_corr_func(sys.argv[1], True, 4, True, 625000, 40000, 0, 0, -10)
+    if len(sys.argv) == 2:
+        cross_corr_func(sys.argv[1], True, 4, True, 625000, 40000, 0, 0, -10)
+    else:
+        try:
+            cross_corr_func(sys.argv[1], sys.argv[2] == "True", int(sys.argv[3]), sys.argv[4] == "True", int(sys.argv[5]), int(sys.argv[6]), int(sys.argv[7]), int(sys.argv[8]), int(sys.argv[9]))
+        except:
+            print("wrong input arguments")

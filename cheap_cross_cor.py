@@ -21,12 +21,14 @@ filepath = '../Data/matlab_custom_cheap_hydrophone_(1).csv'
 
 fs = 625000
 pinger_frequency = 40000
+ping_duration = .004  # how long the ping lasts in seconds
 band_width = 500
 
 octant = [0, 0, 0]
 
 
 def main():
+
     df = pd.read_csv(filepath)
     c1 = df["Channel 0"].tolist() # 1323120
     c2 = df["Channel 1"].tolist() # 1323060
@@ -44,15 +46,21 @@ def main():
     f4 = butter_bandpass_filter(c4, lowcut, highcut, fs, order=4)
 
     print(len(f1))
-    plot([c1, f1])
+    #plot([c1, f1])
 
     cross12 = correlate(f1, f2, mode='full') # 2560060 - 2560000 = 60. c1 is about 60 samples later than c2
     cross13 = correlate(f1, f3, mode='full')
     cross14 = correlate(f1, f4, mode='full')
 
-    x = np.argmax(np.array(cross12)) - len(f1) # positive
-    y = np.argmax(np.array(cross13)) - len(f1) # negative
-    z = np.argmax(np.array(cross14)) - len(f1) # negative
+    print(len(cross12))
+    print(np.argmax(cross12) - len(f1))
+    print(np.argmax(cross13) - len(f1))
+    print(np.argmax(cross14) - len(f1))
+
+    window_size = 100
+    x = max_moving_avg(cross12, window_size) - len(f1) # positive
+    y = max_moving_avg(cross13, window_size) - len(f1) # negative
+    z = max_moving_avg(cross14, window_size) - len(f1) # negative
 
     print(x, y, z)
 
@@ -60,6 +68,12 @@ def main():
     octant[1] = 1 if y > 0 else -1
     octant[2] = 1 if z > 0 else -1
 
+    return octant
+
+def max_moving_avg(data, window_size):
+    window = np.ones(window_size)/window_size
+    avgs = np.convolve(data, window, mode='same')
+    return avgs #np.argmax(avgs)
 
 def butter_bandpass(lowcut, highcut, fs, order=5):
     nyq = 0.5 * fs
@@ -88,9 +102,12 @@ def plot_filter(lowcut, highcut, fs, order):
 
 
 def plot(data):
-    fig, axs = plt.subplots(len(data))
-    for i, ax in enumerate(axs.flat):
-        ax.plot(data[i])
+    if len(data) == 1:
+        plt.plot(data[0])
+    else:
+        fig, axs = plt.subplots(len(data))
+        for i, ax in enumerate(axs.flat):
+            ax.plot(data[i])
     plt.show()
 
 

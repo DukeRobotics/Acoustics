@@ -48,6 +48,11 @@ def main():
     print(len(f1))
     #plot([c1, f1])
 
+    f1 = np.absolute(f1).tolist()
+    f2 = np.absolute(f2).tolist()
+    f3 = np.absolute(f3).tolist()
+    f4 = np.absolute(f4).tolist()
+
     cross12 = correlate(f1, f2, mode='full') # 2560060 - 2560000 = 60. c1 is about 60 samples later than c2
     cross13 = correlate(f1, f3, mode='full')
     cross14 = correlate(f1, f4, mode='full')

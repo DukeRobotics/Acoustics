@@ -53,14 +53,9 @@ def main():
     cross14 = correlate(f1, f4, mode='full')
 
     print(len(cross12))
-    print(np.argmax(cross12) - len(f1))
-    print(np.argmax(cross13) - len(f1))
-    print(np.argmax(cross14) - len(f1))
-
-    window_size = 100
-    x = max_moving_avg(cross12, window_size) - len(f1) # positive
-    y = max_moving_avg(cross13, window_size) - len(f1) # negative
-    z = max_moving_avg(cross14, window_size) - len(f1) # negative
+    x = np.argmax(cross12) - len(f1)
+    y = np.argmax(cross13) - len(f1)
+    z = np.argmax(cross14) - len(f1)
 
     print(x, y, z)
 
@@ -73,7 +68,7 @@ def main():
 def max_moving_avg(data, window_size):
     window = np.ones(window_size)/window_size
     avgs = np.convolve(data, window, mode='same')
-    return avgs #np.argmax(avgs)
+    return np.argmax(avgs)
 
 def butter_bandpass(lowcut, highcut, fs, order=5):
     nyq = 0.5 * fs

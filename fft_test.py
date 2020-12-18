@@ -23,27 +23,22 @@ sampling_frequency = 625000  # samples taken per second
 ping_duration = .004  # how long the ping lasts in seconds
 vsound = 1511.5  # speed of sound in water
 
-# guessed pinger location
-gx = 1
-gy = -1
-gz = 10
-
-# space = 0.0115  # spacing between hydrophones
-# hp0 = [0, 0, 0]
-# hp1 = [0, -space, 0]
-# hp2 = [-space, 0, 0]
-# hp3 = [-space, -space, 0]
-
+space = 0.0115  # spacing between hydrophones
 hp0 = [0, 0, 0]
-hp1 = [0, -18.42878e-3, -11.37982e-3]
-hp2 = [12.72792e-3, 12.72792e-3, 0]
-hp3 = [-12.72792e-3, 12.72792e-3, 0]
+hp1 = [0, -space, 0]
+hp2 = [-space, 0, 0]
+hp3 = [-space, -space, 0]
 
-filepath, files = "/Users/reedchen/OneDrive - Duke University/Robotics/Data/SinkData/HPsink2.csv", [1]
+# hp0 = [0, 0, 0]
+# hp1 = [0, -18.42878e-3, -11.37982e-3]
+# hp2 = [12.72792e-3, 12.72792e-3, 0]
+# hp3 = [-12.72792e-3, 12.72792e-3, 0]
 
-gx = -5
-gy = -5
-gz = 0
+filepath, files = "/Users/reedchen/OneDrive - Duke University/Robotics/Data/matlab_custom_-2_7_4_.csv", range(1,5)
+
+gx = -2
+gy = 7
+gz = 4
 
 def read_data(filepath):
     df = pd.read_csv(filepath, skiprows=[1], skipinitialspace=True)
@@ -122,6 +117,9 @@ def system(guess, *variables):
             np.linalg.norm(guess - hp0) - np.linalg.norm(guess - hp2) - timeDiff02,
             np.linalg.norm(guess - hp0) - np.linalg.norm(guess - hp3) - timeDiff03)
 
+def distance(one, two):
+    location = [gx, gy, gz]
+    return np.linalg.norm([a-b for a, b in zip(one, location)]) - np.linalg.norm([a-b for a, b in zip(two, location)])
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -236,21 +234,16 @@ if __name__ == "__main__":
             phaseDiff03 = find_phase_diff(phase0, phase3, minIndex, minIndexEnd)
 
             diff01 = phaseDiff01 / 2 / np.pi * vsound / target_frequency
-            #print(7.5422-7.5498)
-            print(diff01)
-            print()
+            print(diff01, "01 difference in distance | actual is: ", distance(hp0, hp1))
             diff02 = phaseDiff02 / 2 / np.pi * vsound / target_frequency
-            #print(7.5559 - 7.5498)
-            print(diff02)
-            print()
+            print(diff02, "01 difference in distance | actual is: ", distance(hp0, hp2))
             diff03 = phaseDiff03 / 2 / np.pi * vsound / target_frequency
-            #print(7.5483 - 7.5498)
-            print(diff03)
-            print()
+            print(diff03, "01 difference in distance | actual is: ", distance(hp0, hp3))
 
             guessedLocation = (gx, gy, gz)
 
-            data_val = (hp0, hp1, hp2, hp3, diff01, diff02, diff03)
+            #data_val = (hp0, hp1, hp2, hp3, diff01, diff02, diff03)
+            data_val = (hp0, hp1, hp2, hp3, distance(hp0, hp1), distance(hp0, hp2), distance(hp0, hp3))
             x, y, z = fsolve(system, guessedLocation, data_val)
 
             print(f"x: {x}\ty: {y}\tz: {z}")

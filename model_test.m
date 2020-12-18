@@ -5,9 +5,9 @@ samples = 2.048*2*sf;
 noise = -60; % noise level in decibels
 
 %pinger location
-px = 4;
-py = -5;
-pz = -4;
+px = -2;
+py = 7;
+pz = 4;
 
 space = 0.0115;  % spacing between hydrophones
 
@@ -17,12 +17,12 @@ hp2 = [0, -space, 0];
 hp3 = [-space, 0, 0];
 hp4 = [-space, -space, 0];
 
-%cheap hydrophone location
-space = .3;
-hp1 = [0,0,0];
-hp2 = [space, 0,0];
-hp3 = [0, space, 0];
-hp4 = [0, 0, space];
+% %cheap hydrophone location
+% space = .3;
+% hp1 = [0,0,0];
+% hp2 = [space, 0,0];
+% hp3 = [0, space, 0];
+% hp4 = [0, 0, space];
 
 dis1 = dis(px, py, pz, hp1(1), hp1(2), hp1(3));
 dis2 = dis(px, py, pz, hp2(1), hp2(2), hp2(3));
@@ -54,7 +54,7 @@ ping2(ceil(dis2/vs*sf+2.048*sf)+1+buffer:ceil((dis2/vs+0.004)*sf+2.048*sf)+buffe
 ping3(ceil(dis3/vs*sf+2.048*sf)+1+buffer:ceil((dis3/vs+0.004)*sf+2.048*sf)+buffer) = ping;
 ping4(ceil(dis4/vs*sf+2.048*sf)+1+buffer:ceil((dis4/vs+0.004)*sf+2.048*sf)+buffer) = ping;
 
-for i = 1:1
+for i = 1:4
 
     h1 = ping1+wgn(samples, 1, noise);
     h2 = ping2+wgn(samples, 1, noise);
@@ -64,7 +64,7 @@ for i = 1:1
     t = table(h1, h2, h3, h4);
     t.Properties.VariableNames = {'Channel 0', 'Channel 1', 'Channel 2', 'Channel 3'};
     
-    filepath = sprintf('/Users/reedchen/OneDrive - Duke University/Robotics/Data/matlab_custom_cheap_hydrophone_(%d).csv', i);
+    filepath = sprintf('/Users/reedchen/OneDrive - Duke University/Robotics/Data/matlab_custom_-2_7_4_(%d).csv', i);
     writetable(t, filepath);
     disp(i)
 end

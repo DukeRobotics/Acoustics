@@ -124,7 +124,7 @@ k = 0;
 %
 t = table(h1, h2, h3, h4);
 t.Properties.VariableNames = {'Channel0' 'Channel1' 'Channel2' 'Channel3'};
-writetable(t, '/Users/estellehe/Documents/senior/IndepStudy/matlab_76_4.csv');
+writetable(t, '/Users/erinliu/Desktop/matlab_custom(1).csv');
 
 function result = dis(x, y, z, x1, y1, z1)
     result = sqrt((x-x1)^2 + (y-y1)^2 + (z-z1)^2);

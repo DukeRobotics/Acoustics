@@ -39,53 +39,54 @@ hp4 = [-space, -space, 0]
 # hp3 = [0, space, 0]
 # hp4 = [0, 0, space]
 
-dis1 = dis(px, py, pz, hp1(1), hp1(2), hp1(3))
-dis2 = dis(px, py, pz, hp2(1), hp2(2), hp2(3))
-dis3 = dis(px, py, pz, hp3(1), hp3(2), hp3(3))
-dis4 = dis(px, py, pz, hp4(1), hp4(2), hp4(3))
+dis1 = dis(px, py, pz, hp1[0], hp1[1], hp1[2])
+dis2 = dis(px, py, pz, hp2[0], hp2[1], hp2[2])
+dis3 = dis(px, py, pz, hp3[0], hp3[1], hp3[2])
+dis4 = dis(px, py, pz, hp4[0], hp4[1], hp4[2])
 # dis1
 # dis2
 # dis3
 # dis4
 
 # assume pinger ping at t = 0 for 4ms, sound arrives at hydrophone with amplitude v = 5V
-ping1 = np.zeros(samples, 1)
-ping2 = np.zeros(samples, 1)
-ping3 = np.zeros(samples, 1)
-ping4 = np.zeros(samples, 1)
+ping1 = np.zeros(math.floor(samples))
+ping2 = np.zeros(math.floor(samples))
+ping3 = np.zeros(math.floor(samples))
+ping4 = np.zeros(math.floor(samples))
 
-s = range(1, 0.004 * sf)
+s = np.arange(1, math.floor(0.004 * sf), 1/sf)
 ping = 0.1 * np.sin((s / sf * pinger_frequency * 2 * math.pi))  # complex conjugate transpose (np.matrix.H)
 
 buffer = 40000
 
+# sorry, i will make this part more efficient
 for i in range(math.ceil(dis1 / vs * sf) + 1 + buffer, math.ceil((dis1 / vs + 0.004) * sf) + buffer + 1):
-    ping1[i] = ping
+    ping1[i] = ping[i]
 
 for i in range(math.ceil(dis2 / vs * sf) + 1 + buffer, math.ceil((dis2 / vs + 0.004) * sf) + buffer + 1):
-    ping2[i] = ping
+    ping2[i] = ping[i]
 
 for i in range(math.ceil(dis3 / vs * sf) + 1 + buffer, math.ceil((dis3 / vs + 0.004) * sf) + buffer + 1):
-    ping3[i] = ping
+    ping3[i] = ping[i]
 
 for i in range(math.ceil(dis4 / vs * sf) + 1 + buffer, math.ceil((dis4 / vs + 0.004) * sf) + buffer + 1):
-    ping4[i] = ping
+    ping4[i] = ping[i]
 
 for i in range(math.ceil(dis1 / vs * sf + 2.048 * sf) + 1 + buffer,
                math.ceil((dis1 / vs + 0.004) * sf + 2.048 * sf) + buffer + 1):
-    ping1[i] = ping
+    ping1[i] = ping[i]
 
 for i in range(math.ceil(dis2 / vs * sf + 2.048 * sf) + 1 + buffer,
                math.ceil((dis2 / vs + 0.004) * sf + 2.048 * sf) + buffer + 1):
-    ping2[i] = ping
+    ping2[i] = ping[i]
 
 for i in range(math.ceil(dis3 / vs * sf + 2.048 * sf) + 1 + buffer,
                math.ceil((dis3 / vs + 0.004) * sf + 2.048 * sf) + buffer + 1):
-    ping3[i] = ping
+    ping3[i] = ping[i]
 
 for i in range(math.ceil(dis4 / vs * sf + 2.048 * sf) + 1 + buffer,
                math.ceil((dis4 / vs + 0.004) * sf + 2.048 * sf) + buffer + 1):
-    ping4[i] = ping
+    ping4[i] = ping[i]
 
 for i in range(1, 5):
     mean = (-76 + noise) / 2

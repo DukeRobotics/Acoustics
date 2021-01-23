@@ -31,7 +31,7 @@ def get_pd(k):
     fs = 625000
     sample = fs * t_len
     ft = 30000
-    nl = -76 # noise level
+    nl = -76  # noise level
     h_dis = 11.5 / 304.8  # mm to ft
     v_sound = 4858  # ft/s
 
@@ -84,75 +84,49 @@ def get_pd(k):
     p3s = math.ceil(dis2 / v_sound * fs) + 13000 * 3
     p4s = math.ceil(dis2 / v_sound * fs) + 13000 * 3
 
-    p12 = p1s-p2s
-    p13 = p1s-p3s
-    p34 = p3s-p4s
+    p12 = p1s - p2s
+    p13 = p1s - p3s
+    p34 = p3s - p4s
     pd = [p12, p13, p34]
 
-    off1 = p1s - dis1/v_sound*fs+13000*3
-    off2 = p2s - dis2/v_sound*fs+13000*3
-    off3 = p3s - dis3/v_sound*fs+13000*3
-    off4 = p4s - dis4/v_sound*fs+13000*3
+    off1 = p1s - dis1 / v_sound * fs + 13000 * 3
+    off2 = p2s - dis2 / v_sound * fs + 13000 * 3
+    off3 = p3s - dis3 / v_sound * fs + 13000 * 3
+    off4 = p4s - dis4 / v_sound * fs + 13000 * 3
 
-    s = range(1, 0.004*fs)
-    pingoff1 = 0.1*np.sin((s+off1)/fs*ft*2*math.pi) #complex conjugate transpose (np.matrix.H)
-    pingoff2 = 0.1*np.sin((s+off2)/fs*ft*2*math.pi)
-    pingoff3 = 0.1*np.sin((s+off3)/fs*ft*2*math.pi)
-    pingoff4 = 0.1*np.sin((s+off4)/fs*ft*2*math.pi)
+    s = range(1, 0.004 * fs)
+    pingoff1 = 0.1 * np.sin((s + off1) / fs * ft * 2 * math.pi)  # complex conjugate transpose (np.matrix.H)
+    pingoff2 = 0.1 * np.sin((s + off2) / fs * ft * 2 * math.pi)
+    pingoff3 = 0.1 * np.sin((s + off3) / fs * ft * 2 * math.pi)
+    pingoff4 = 0.1 * np.sin((s + off4) / fs * ft * 2 * math.pi)
 
-# need to figure out colons
-# need to convert db
+    fig, axs = plt.subplots(4)
+    fig.suptitle('Sine Waves')
+    axs[0].plot(pingoff1)
+    axs[1].plot(pingoff2)
+    axs[2].plot(pingoff3)
+    axs[3].plot(pingoff4)
+
+    # need to figure out colons
+    # need to convert db
 
     # noise, simulate from data, power shifts from -60db to -73db
     mean = (-60 + nl) / 2
     std = abs((-60 - nl) / 6)
 
-    h1 = ping1+np.random.normal(mean, std, sample);
-    h2 = ping2+np.random.normal(mean, std, sample);
-    h3 = ping3+np.random.normal(mean, std, sample);
-    h4 = ping4+np.random.normal(mean, std, sample);
+    h1 = ping1 + np.random.normal(mean, std, sample);
+    h2 = ping2 + np.random.normal(mean, std, sample);
+    h3 = ping3 + np.random.normal(mean, std, sample);
+    h4 = ping4 + np.random.normal(mean, std, sample);
+
 
 def dis(x, y, z, x1, y1, z1):
     return math.sqrt((x - x1) ** 2 + (y - y1) ** 2 + (z - z1) ** 2)
 
+
 def db_to_intensity(i):
-    return i/(10)
+    return i / (10)
 
 
-
-
-
-
-#     ping1(ceil(dis1/v_sound*fs+13000*3)+1:ceil((dis1/v_sound+0.004)*fs+13000*3)) = pingoff1;
-#     ping2(ceil(dis2/v_sound*fs+13000*3)+1:ceil((dis2/v_sound+0.004)*fs+13000*3)) = pingoff2;
-#     ping3(ceil(dis3/v_sound*fs+13000*3)+1:ceil((dis3/v_sound+0.004)*fs+13000*3)) = pingoff3;
-#     ping4(ceil(dis4/v_sound*fs+13000*3)+1:ceil((dis4/v_sound+0.004)*fs+13000*3)) = pingoff4;
-#
-#     ping1(ceil(dis1/v_sound*fs+13000*3+2.048*fs)+1:ceil((dis1/v_sound+0.004)*fs+13000*3+2.048*fs)) = 1.5*pingoff1;
-#     ping2(ceil(dis2/v_sound*fs+13000*3+2.048*fs)+1:ceil((dis2/v_sound+0.004)*fs+13000*3+2.048*fs)) = 1.5*pingoff2;
-#     ping3(ceil(dis3/v_sound*fs+13000*3+2.048*fs)+1:ceil((dis3/v_sound+0.004)*fs+13000*3+2.048*fs)) = 1.5*pingoff3;
-#     ping4(ceil(dis4/v_sound*fs+13000*3+2.048*fs)+1:ceil((dis4/v_sound+0.004)*fs+13000*3+2.048*fs)) = 1.5*pingoff4;
-#
-#     h1 = ping1+wgn(sample, 1, nl);
-#     h2 = ping2+wgn(sample, 1, nl);
-#     h3 = ping3+wgn(sample, 1, nl);
-#     h4 = ping4+wgn(sample, 1, nl);
-#
-# t = table(h1, h2, h3, h4);
-# t.Properties.VariableNames = {'Channel0' 'Channel1' 'Channel2' 'Channel3'};
-# writetable(t, '/Users/erinliu/Desktop/matlab_custom(1).csv');
-
-
-
-
-
-
-
-# h1 = ping1;
-# h2 = ping2;
-# h3 = ping3;
-# h4 = ping4;
-# unit is feet
-# function result = wall(x, y, z)
-#     result = x^2/150^2 + y^2/100^2 + z^2/38^2;
-# end
+if __name__ == "__main__":
+    get_pd(k)

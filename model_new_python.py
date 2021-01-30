@@ -9,6 +9,7 @@ from tabulate import tabulate
 import os.path
 import sys
 
+
 def dis(x, y, z, x1, y1, z1):
     return math.sqrt((x - x1) ** 2 + (y - y1) ** 2 + (z - z1) ** 2)
 
@@ -54,39 +55,31 @@ ping2 = np.zeros(math.floor(samples))
 ping3 = np.zeros(math.floor(samples))
 ping4 = np.zeros(math.floor(samples))
 
-s = np.arange(1, math.floor(0.004 * sf), 1/sf)
+s = np.arange(1, math.floor(0.004 * sf), 1 / sf)
 ping = 0.1 * np.sin((s / sf * pinger_frequency * 2 * math.pi))  # complex conjugate transpose (np.matrix.H)
 
 buffer = 40000
 
 # sorry, i will make this part more efficient
-for i in range(math.ceil(dis1 / vs * sf) + 1 + buffer, math.ceil((dis1 / vs + 0.004) * sf) + buffer + 1):
-    ping1[i] = ping[i]
+ping1[math.ceil(dis1 / vs * sf) + 1 + buffer: math.ceil((dis1 / vs + 0.004) * sf) + buffer + 1] = ping
 
-for i in range(math.ceil(dis2 / vs * sf) + 1 + buffer, math.ceil((dis2 / vs + 0.004) * sf) + buffer + 1):
-    ping2[i] = ping[i]
+ping2[math.ceil(dis2 / vs * sf) + 1 + buffer: math.ceil((dis2 / vs + 0.004) * sf) + buffer + 1] = ping
 
-for i in range(math.ceil(dis3 / vs * sf) + 1 + buffer, math.ceil((dis3 / vs + 0.004) * sf) + buffer + 1):
-    ping3[i] = ping[i]
+ping3[math.ceil(dis3 / vs * sf) + 1 + buffer: math.ceil((dis3 / vs + 0.004) * sf) + buffer + 1] = ping
 
-for i in range(math.ceil(dis4 / vs * sf) + 1 + buffer, math.ceil((dis4 / vs + 0.004) * sf) + buffer + 1):
-    ping4[i] = ping[i]
+ping4[math.ceil(dis4 / vs * sf) + 1 + buffer: math.ceil((dis4 / vs + 0.004) * sf) + buffer + 1] = ping
 
-for i in range(math.ceil(dis1 / vs * sf + 2.048 * sf) + 1 + buffer,
-               math.ceil((dis1 / vs + 0.004) * sf + 2.048 * sf) + buffer + 1):
-    ping1[i] = ping[i]
+ping1[math.ceil(dis1 / vs * sf + 2.048 * sf) + 1 + buffer:
+      math.ceil((dis1 / vs + 0.004) * sf + 2.048 * sf) + buffer + 1] = ping
 
-for i in range(math.ceil(dis2 / vs * sf + 2.048 * sf) + 1 + buffer,
-               math.ceil((dis2 / vs + 0.004) * sf + 2.048 * sf) + buffer + 1):
-    ping2[i] = ping[i]
+ping2[math.ceil(dis2 / vs * sf + 2.048 * sf) + 1 + buffer:
+      math.ceil((dis2 / vs + 0.004) * sf + 2.048 * sf) + buffer + 1] = ping
 
-for i in range(math.ceil(dis3 / vs * sf + 2.048 * sf) + 1 + buffer,
-               math.ceil((dis3 / vs + 0.004) * sf + 2.048 * sf) + buffer + 1):
-    ping3[i] = ping[i]
+ping3[math.ceil(dis3 / vs * sf + 2.048 * sf) + 1 + buffer:
+      math.ceil((dis3 / vs + 0.004) * sf + 2.048 * sf) + buffer + 1] = ping
 
-for i in range(math.ceil(dis4 / vs * sf + 2.048 * sf) + 1 + buffer,
-               math.ceil((dis4 / vs + 0.004) * sf + 2.048 * sf) + buffer + 1):
-    ping4[i] = ping[i]
+ping4[math.ceil(dis4 / vs * sf + 2.048 * sf) + 1 + buffer:
+      math.ceil((dis4 / vs + 0.004) * sf + 2.048 * sf) + buffer + 1] = ping
 
 for i in range(1, 5):
     mean = (-76 + noise) / 2
@@ -98,25 +91,17 @@ for i in range(1, 5):
     h4 = ping4 + np.random.normal(mean, std, samples)
 
     t = Table([h1, h2, h3, h4], names=('Channel 0', 'Channel 1', 'Channel 2', 'Channel 3'))
-    with open(('/Users/reedchen/OneDrive - Duke University/Robotics/Data/matlab_custom_-2_7_4_(%d).csv', i),
+    with open(('/Users/erinliu/Desktop/Duke/Robotics/matlab_custom(%d).csv', i),
               'w') as outputfile:
         outputfile.write(tabulate(t))
 
-fig, axs = plt.subplots(4)
-fig.subtitle('Sine Waves')
-axs[0].plot(h1)
-axs[1].plot(h2)
-axs[2].plot(h3)
-axs[3].plot(h4)
-plt.show()
-
-
-
-
-
-
-
-
+# fig, axs = plt.subplots(4)
+# fig.subtitle('Sine Waves')
+# axs[0].plot(h1)
+# axs[1].plot(h2)
+# axs[2].plot(h3)
+# axs[3].plot(h4)
+# plt.show()
 
 # # p12a = np.zeros(12)
 # # p13a = np.zeros(12)
